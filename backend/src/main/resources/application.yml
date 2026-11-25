@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: schedulix
+  profiles:
+    default: dev
+
+server:
+  port: ${SERVER_PORT:8080}
+
+app:
+  timezone: ${APP_TIMEZONE:Asia/Kolkata}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    com.schedulix: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    com.schedulix: INFO
