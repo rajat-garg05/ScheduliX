@@ -10,12 +10,27 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:2525}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${MAIL_SMTP_AUTH:true}
+          starttls:
+            enable: ${MAIL_SMTP_STARTTLS:true}
 
 server:
   port: ${SERVER_PORT:8080}
 
 app:
   timezone: ${APP_TIMEZONE:Asia/Kolkata}
+  public-url: ${APP_PUBLIC_URL:http://localhost:5173}
+  mail:
+    enabled: ${APP_MAIL_ENABLED:false}
+    from: ${MAIL_FROM:no-reply@schedulix.local}
 
 ---
 spring:
@@ -23,7 +38,7 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:schedulix}}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/schedulix}
     username: ${DB_USER:schedulix}
     password: ${DB_PASSWORD:schedulix}
 
