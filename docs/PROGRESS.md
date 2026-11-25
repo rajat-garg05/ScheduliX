@@ -7,7 +7,8 @@
 - Prompt 4 (All 6 milestones): Semesters, Sections, and Semester Plans (`V4__semesters_sections_plans.sql`, `SavedTimetableLookup`, `PlanValidator`, CSV multi-section import, manual plan editing, `SemesterPlansPage`).
 - Prompt 5 (All 6 milestones): Pure Java Timetable Engine (`com.schedulix.engine`).
 - Prompt 6, Milestone 1: Added `V5__timetables.sql`, JPA entities & repositories, `@Primary` `TimetableSavedLookup` & `TimetableUsageChecker`, draft CRUD (`TimetableDraftService`, `TimetableController`), and `TimetableDraftIntegrationTest`.
-- Prompt 6, Milestone 2: Built `TimetableSettings`, `DayPreviewSlot`, `TimetableSettingsResponse`, `TimetableSettingsSupport` (validation, clock-time math, day preview, JSON codec), `PUT /api/timetables/{id}/settings`, and `TimetableSettingsSupportTest`.
+- Prompt 6, Milestone 2: Built `TimetableSettings`, `DayPreviewSlot`, `TimetableSettingsResponse`, `TimetableSettingsSupport`, `PUT /api/timetables/{id}/settings`, and `TimetableSettingsSupportTest`.
+- Prompt 6, Milestone 3: Added `UpdateClassesRequest`, `PUT /api/timetables/{id}/classes` (validating saved-timetable & missing-plan rules, updating draft name, clearing dependent steps on change), and `TimetableClassesIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -41,4 +42,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 6, Milestone 3: Choose classes step (`PUT /api/timetables/{id}/classes`) — clearing dependent steps + tests.
+- Prompt 6, Milestone 4: `BusyCellService` (clock-time overlap mapping across different start times) and `EngineInputBuilder` + tests.

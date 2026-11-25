@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -139,6 +140,45 @@ public class TimetableDraftService {
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SEMESTER_NOT_FOUND", "Semester not found."));
         List<Section> sections = loadSectionsForTimetable(tt.getId(), tt.getSemesterId());
         return toDraftResponse(tt, sem, sections);
+    }
+
+    @Transactional
+    public TimetableDraftResponse updateClasses(UUID timetableId, UpdateClassesRequest request) {
+        UUID deptId = currentUser.departmentId();
+        Timetable tt = loadOwnedDraft(timetableId, deptId);
+        Semester semester = semesterRepository.findByIdAndDepartmentId(tt.getSemesterId(), deptId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SEMESTER_NOT_FOUND", "Semester not found."));
+
+        List<Section> chosenSections = validateAndResolveSections(semester, request.sectionIds());
+        Set<UUID> nextIds = new HashSet<>();
+        for (Section sec : chosenSections) {
+            nextIds.add(sec.getId());
+        }
+
+        Set<UUID> currentIds = new HashSet<>();
+        for (TimetableClass tc : timetableClassRepository.findByTimetableId(tt.getId())) {
+            currentIds.add(tc.getSectionId());
+        }
+
+        if (!currentIds.equals(nextIds)) {
+            timetableClassRepository.deleteByTimetableId(tt.getId());
+            timetableClassRepository.flush();
+
+            for (Section sec : chosenSections) {
+                timetableClassRepository.save(new TimetableClass(tt.getId(), sec.getId(), false));
+            }
+
+            // Changing classes clears dependent teacher choices, fixed lectures, and generated lectures.
+            teacherChoiceRepository.deleteByTimetableId(tt.getId());
+            fixedLectureRepository.deleteByTimetableId(tt.getId());
+            lectureRepository.deleteByTimetableId(tt.getId());
+
+            String updatedName = buildTimetableName(semester.getName(), chosenSections);
+            tt.setName(updatedName);
+            historyService.record("TIMETABLE", "Updated classes for timetable draft: " + updatedName + ".");
+        }
+
+        return toDraftResponse(tt, semester, chosenSections);
     }
 
     @Transactional

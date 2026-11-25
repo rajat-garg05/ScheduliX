@@ -46,6 +46,14 @@ public class TimetableController {
         return draftService.getDraft(id);
     }
 
+    @PutMapping("/{id}/classes")
+    public TimetableDraftResponse updateClasses(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateClassesRequest request
+    ) {
+        return draftService.updateClasses(id, request);
+    }
+
     @PutMapping("/{id}/settings")
     public TimetableSettingsResponse updateSettings(
             @PathVariable UUID id,
