@@ -48,7 +48,7 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/schedulix}
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:schedulix}}
     username: ${DB_USER:schedulix}
     password: ${DB_PASSWORD:schedulix}
 

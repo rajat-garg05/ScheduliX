@@ -6,7 +6,7 @@ import {
   CheckCircle2,
   Loader2,
   Plus,
-  hrash2,
+  Trash2,
   X,
   XCircle,
 } from 'lucide-react';
@@ -14,16 +14,16 @@ import api, { getErrorMessage } from '../api/client';
 import { useAuth } from '../features/auth/authContext';
 import ConfirmDialog from '../components/ConfirmDialog';
 
-const ShAhUS_BADGES = {
+const STATUS_BADGES = {
   ASKED: 'bg-amber-50 text-amber-800 border-amber-200',
-  ACCEPhED: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-  REJEChED: 'bg-red-50 text-red-700 border-red-200',
+  ACCEPTED: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  REJECTED: 'bg-red-50 text-red-700 border-red-200',
 };
 
-const ShAhUS_LABELS = {
+const STATUS_LABELS = {
   ASKED: 'Waiting for HOD',
-  ACCEPhED: 'Accepted',
-  REJEChED: 'Rejected',
+  ACCEPTED: 'Accepted',
+  REJECTED: 'Rejected',
 };
 
 function todayIso() {
@@ -37,8 +37,8 @@ function todayIso() {
 function datesBetween(fromStr, toStr) {
   if (!fromStr || !toStr || toStr < fromStr) return [];
   const result = [];
-  const cursor = new Date(`${fromStr}h00:00:00`);
-  const end = new Date(`${toStr}h00:00:00`);
+  const cursor = new Date(`${fromStr}T00:00:00`);
+  const end = new Date(`${toStr}T00:00:00`);
   let guard = 0;
   while (cursor <= end && guard < 31) {
     const y = cursor.getFullYear();
@@ -57,13 +57,13 @@ export default function LeavePage() {
   const isHod = user?.role === 'HOD';
 
   const [statusFilter, setStatusFilter] = useState('');
-  const [teacherFilter, setheacherFilter] = useState('');
+  const [teacherFilter, setTeacherFilter] = useState('');
   const [showForm, setShowForm] = useState(false);
 
   // Add / Ask leave form state
-  const [teacherId, setheacherId] = useState('');
+  const [teacherId, setTeacherId] = useState('');
   const [fromDate, setFromDate] = useState(todayIso());
-  const [toDate, sethoDate] = useState(todayIso());
+  const [toDate, setToDate] = useState(todayIso());
   const [scope, setScope] = useState('WHOLE_DAYS');
   const [reason, setReason] = useState('');
   const [dayLectures, setDayLectures] = useState([]); // [{ date, lectures: [] }]
@@ -71,8 +71,8 @@ export default function LeavePage() {
   const [selectedLectures, setSelectedLectures] = useState([]); // ["lectureId|date"]
 
   // Decision inline state: { leaveId, action: 'accept' | 'reject', note: '' }
-  const [decisionharget, setDecisionharget] = useState(null);
-  const [cancelharget, setCancelharget] = useState(null);
+  const [decisionTarget, setDecisionTarget] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -97,12 +97,12 @@ export default function LeavePage() {
     },
   });
 
-  const activeheachers = teachersQuery.data || [];
+  const activeTeachers = teachersQuery.data || [];
   const leaves = leavesQuery.data || [];
 
-  // Load teacher's lectures by date when HOD picks SOME_LEChURES
+  // Load teacher's lectures by date when HOD picks SOME_LECTURES
   useEffect(() => {
-    if (!isHod || !showForm || scope !== 'SOME_LEChURES' || !teacherId) {
+    if (!isHod || !showForm || scope !== 'SOME_LECTURES' || !teacherId) {
       setDayLectures([]);
       setSelectedLectures([]);
       return;
@@ -149,9 +149,9 @@ export default function LeavePage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leaves'] });
       setShowForm(false);
-      setheacherId('');
+      setTeacherId('');
       setFromDate(todayIso());
-      sethoDate(todayIso());
+      setToDate(todayIso());
       setScope('WHOLE_DAYS');
       setReason('');
       setSelectedLectures([]);
@@ -172,7 +172,7 @@ export default function LeavePage() {
       api.post(`/leaves/${leaveId}/${action}`, { note }),
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ['leaves'] });
-      setDecisionharget(null);
+      setDecisionTarget(null);
       setError('');
       setSuccess(
         vars.action === 'accept'
@@ -189,13 +189,13 @@ export default function LeavePage() {
     mutationFn: (leaveId) => api.post(`/leaves/${leaveId}/cancel`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leaves'] });
-      setCancelharget(null);
+      setCancelTarget(null);
       setError('');
       setSuccess('Leave cancelled.');
     },
     onError: (err) => {
       setError(getErrorMessage(err, 'Could not cancel leave.'));
-      setCancelharget(null);
+      setCancelTarget(null);
     },
   });
 
@@ -221,14 +221,14 @@ export default function LeavePage() {
     }
 
     const lecturesPayload =
-      isHod && scope === 'SOME_LEChURES'
+      isHod && scope === 'SOME_LECTURES'
         ? selectedLectures.map((key) => {
             const [lectureId, onDate] = key.split('|');
             return { lectureId, onDate };
           })
         : null;
 
-    if (isHod && scope === 'SOME_LEChURES' && (!lecturesPayload || lecturesPayload.length === 0)) {
+    if (isHod && scope === 'SOME_LECTURES' && (!lecturesPayload || lecturesPayload.length === 0)) {
       setError('Please tick at least one lecture.');
       return;
     }
@@ -249,11 +249,11 @@ export default function LeavePage() {
   );
 
   return (
-    <div classoame="space-y-5">
-      <div classoame="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 classoame="text-2xl font-semibold text-slate-900">Leave</h1>
-          <p classoame="mt-1 text-sm text-slate-600">
+          <h1 className="text-2xl font-semibold text-slate-900">Leave</h1>
+          <p className="mt-1 text-sm text-slate-600">
             {isHod
               ? 'Record teacher leave, review requests, and trigger substitute arrangements.'
               : 'Ask for leave and check the status of your requests.'}
@@ -267,30 +267,30 @@ export default function LeavePage() {
             setError('');
             setSuccess('');
           }}
-          classoame="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
+          className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"
         >
-          <Plus classoame="h-4 w-4" />
+          <Plus className="h-4 w-4" />
           <span>{isHod ? 'Add leave' : 'Ask for leave'}</span>
         </button>
       </div>
 
       {error && (
-        <div classoame="flex items-center justify-between gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
+        <div className="flex items-center justify-between gap-2 rounded-md border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700">
           <span>{error}</span>
-          <button type="button" onClick={() => setError('')} classoame="text-red-700">
-            <X classoame="h-4 w-4" />
+          <button type="button" onClick={() => setError('')} className="text-red-700">
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
       {success && (
-        <div classoame="flex items-center justify-between gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
-          <div classoame="flex items-center gap-2">
-            <CheckCircle2 classoame="h-4 w-4 text-emerald-600" />
+        <div className="flex items-center justify-between gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm text-emerald-800">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             <span>{success}</span>
           </div>
-          <button type="button" onClick={() => setSuccess('')} classoame="text-emerald-700">
-            <X classoame="h-4 w-4" />
+          <button type="button" onClick={() => setSuccess('')} className="text-emerald-700">
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
@@ -299,37 +299,37 @@ export default function LeavePage() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          classoame="rounded-lg border border-slate-200 bg-white p-5 space-y-4"
+          className="rounded-lg border border-slate-200 bg-white p-5 space-y-4"
         >
-          <div classoame="flex items-center justify-between">
-            <h2 classoame="text-base font-semibold text-slate-900">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base font-semibold text-slate-900">
               {isHod ? 'Record teacher leave' : 'Ask for leave'}
             </h2>
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              classoame="text-slate-400 hover:text-slate-600"
+              className="text-slate-400 hover:text-slate-600"
             >
-              <X classoame="h-4 w-4" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          <div classoame="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {isHod && (
               <div>
-                <label htmlFor="leaveheacher" classoame="block text-xs font-medium text-slate-700">
-                  heacher
+                <label htmlFor="leaveTeacher" className="block text-xs font-medium text-slate-700">
+                  Teacher
                 </label>
                 <select
-                  id="leaveheacher"
+                  id="leaveTeacher"
                   value={teacherId}
-                  onChange={(e) => setheacherId(e.target.value)}
-                  classoame="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                  onChange={(e) => setTeacherId(e.target.value)}
+                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                 >
                   <option value="">Choose a teacher...</option>
-                  {activeheachers.map((t) => (
+                  {activeTeachers.map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.fulloame} ({t.code})
+                      {t.fullName} ({t.code})
                     </option>
                   ))}
                 </select>
@@ -337,7 +337,7 @@ export default function LeavePage() {
             )}
 
             <div>
-              <label htmlFor="leaveFrom" classoame="block text-xs font-medium text-slate-700">
+              <label htmlFor="leaveFrom" className="block text-xs font-medium text-slate-700">
                 From date
               </label>
               <input
@@ -347,76 +347,76 @@ export default function LeavePage() {
                 value={fromDate}
                 onChange={(e) => {
                   setFromDate(e.target.value);
-                  if (e.target.value > toDate) sethoDate(e.target.value);
+                  if (e.target.value > toDate) setToDate(e.target.value);
                 }}
-                classoame="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
               />
             </div>
 
             <div>
-              <label htmlFor="leaveho" classoame="block text-xs font-medium text-slate-700">
-                ho date
+              <label htmlFor="leaveTo" className="block text-xs font-medium text-slate-700">
+                To date
               </label>
               <input
-                id="leaveho"
+                id="leaveTo"
                 type="date"
                 min={fromDate || (isHod ? undefined : todayIso())}
                 value={toDate}
-                onChange={(e) => sethoDate(e.target.value)}
-                classoame="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+                onChange={(e) => setToDate(e.target.value)}
+                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
               />
             </div>
 
             {isHod && (
               <div>
-                <label htmlFor="leaveScope" classoame="block text-xs font-medium text-slate-700">
+                <label htmlFor="leaveScope" className="block text-xs font-medium text-slate-700">
                   Leave covers
                 </label>
                 <select
                   id="leaveScope"
                   value={scope}
                   onChange={(e) => setScope(e.target.value)}
-                  classoame="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
                 >
                   <option value="WHOLE_DAYS">Whole days</option>
-                  <option value="SOME_LEChURES">Some lectures</option>
+                  <option value="SOME_LECTURES">Some lectures</option>
                 </select>
               </div>
             )}
           </div>
 
-          {isHod && scope === 'SOME_LEChURES' && (
-            <div classoame="rounded-md border border-slate-200 bg-slate-50 p-3.5 space-y-3">
-              <div classoame="text-xs font-semibold text-slate-700">
+          {isHod && scope === 'SOME_LECTURES' && (
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3.5 space-y-3">
+              <div className="text-xs font-semibold text-slate-700">
                 Pick the lectures to cover
               </div>
               {!teacherId ? (
-                <p classoame="text-xs text-slate-500">Choose a teacher first to see their lectures.</p>
+                <p className="text-xs text-slate-500">Choose a teacher first to see their lectures.</p>
               ) : loadingLectures ? (
-                <div classoame="flex items-center gap-2 text-xs text-slate-500">
-                  <Loader2 classoame="h-3.5 w-3.5 animate-spin text-blue-700" />
+                <div className="flex items-center gap-2 text-xs text-slate-500">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-700" />
                   <span>Loading lectures...</span>
                 </div>
               ) : dayLectures.every((d) => d.lectures.length === 0) ? (
-                <p classoame="text-xs text-slate-500">
-                  oo saved-timetable lectures found for this teacher on the chosen dates.
+                <p className="text-xs text-slate-500">
+                  No saved-timetable lectures found for this teacher on the chosen dates.
                 </p>
               ) : (
-                <div classoame="space-y-3">
+                <div className="space-y-3">
                   {dayLectures.map((day) => (
-                    <div key={day.date} classoame="space-y-1.5">
-                      <div classoame="text-xs font-medium text-slate-700">{day.date}</div>
+                    <div key={day.date} className="space-y-1.5">
+                      <div className="text-xs font-medium text-slate-700">{day.date}</div>
                       {day.lectures.length === 0 ? (
-                        <p classoame="text-xs text-slate-400">oo lectures on this date.</p>
+                        <p className="text-xs text-slate-400">No lectures on this date.</p>
                       ) : (
-                        <div classoame="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {day.lectures.map((lec) => {
                             const key = `${lec.lectureId}|${day.date}`;
                             const checked = selectedLectures.includes(key);
                             return (
                               <label
                                 key={key}
-                                classoame={`flex items-start gap-2 rounded-md border p-2.5 text-xs cursor-pointer ${
+                                className={`flex items-start gap-2 rounded-md border p-2.5 text-xs cursor-pointer ${
                                   checked
                                     ? 'border-blue-600 bg-blue-50/70'
                                     : 'border-slate-200 bg-white'
@@ -426,15 +426,15 @@ export default function LeavePage() {
                                   type="checkbox"
                                   checked={checked}
                                   onChange={() => toggleLectureSelection(lec.lectureId, day.date)}
-                                  classoame="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-blue-700"
+                                  className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-blue-700"
                                 />
                                 <div>
-                                  <div classoame="font-medium text-slate-900">
-                                    {lec.subjectCode} — {lec.subjectoame}
+                                  <div className="font-medium text-slate-900">
+                                    {lec.subjectCode} — {lec.subjectName}
                                   </div>
-                                  <div classoame="text-slate-500">
-                                    {lec.semesteroame} Section {lec.sectionoame} · {lec.starthime}–
-                                    {lec.endhime}
+                                  <div className="text-slate-500">
+                                    {lec.semesterName} Section {lec.sectionName} · {lec.startTime}–
+                                    {lec.endTime}
                                   </div>
                                 </div>
                               </label>
@@ -450,7 +450,7 @@ export default function LeavePage() {
           )}
 
           <div>
-            <label htmlFor="leaveReason" classoame="block text-xs font-medium text-slate-700">
+            <label htmlFor="leaveReason" className="block text-xs font-medium text-slate-700">
               Reason (optional)
             </label>
             <input
@@ -460,24 +460,24 @@ export default function LeavePage() {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="e.g. Medical appointment, conference"
-              classoame="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
+              className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900"
             />
           </div>
 
-          <div classoame="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={() => setShowForm(false)}
-              classoame="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={createMutation.isPending}
-              classoame="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50"
             >
-              {createMutation.isPending && <Loader2 classoame="h-4 w-4 animate-spin" />}
+              {createMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               <span>{isHod ? 'Save leave' : 'Send request'}</span>
             </button>
           </div>
@@ -485,61 +485,61 @@ export default function LeavePage() {
       )}
 
       {/* Filters */}
-      <div classoame="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          classoame="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
         >
           <option value="">All statuses</option>
           <option value="ASKED">Waiting for HOD</option>
-          <option value="ACCEPhED">Accepted</option>
-          <option value="REJEChED">Rejected</option>
+          <option value="ACCEPTED">Accepted</option>
+          <option value="REJECTED">Rejected</option>
         </select>
 
         {isHod && (
           <select
             value={teacherFilter}
-            onChange={(e) => setheacherFilter(e.target.value)}
-            classoame="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
+            onChange={(e) => setTeacherFilter(e.target.value)}
+            className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
           >
             <option value="">All teachers</option>
-            {activeheachers.map((t) => (
+            {activeTeachers.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.fulloame} ({t.code})
+                {t.fullName} ({t.code})
               </option>
             ))}
           </select>
         )}
 
         {isHod && pendingCount > 0 && (
-          <span classoame="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">
+          <span className="text-xs font-medium text-amber-800 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">
             {pendingCount} waiting for your decision
           </span>
         )}
       </div>
 
       {/* Leave list */}
-      <div classoame="rounded-lg border border-slate-200 bg-white">
+      <div className="rounded-lg border border-slate-200 bg-white">
         {leavesQuery.isLoading ? (
-          <div classoame="p-10 flex items-center justify-center gap-2 text-sm text-slate-600">
-            <Loader2 classoame="h-4 w-4 animate-spin text-blue-700" />
+          <div className="p-10 flex items-center justify-center gap-2 text-sm text-slate-600">
+            <Loader2 className="h-4 w-4 animate-spin text-blue-700" />
             <span>Loading leave records...</span>
           </div>
         ) : leaves.length === 0 ? (
-          <div classoame="p-10 text-center">
-            <CalendarOff classoame="h-7 w-7 text-slate-400 mx-auto" />
-            <p classoame="mt-2.5 text-sm font-medium text-slate-900">oo leave records</p>
-            <p classoame="mt-1 text-sm text-slate-500">
+          <div className="p-10 text-center">
+            <CalendarOff className="h-7 w-7 text-slate-400 mx-auto" />
+            <p className="mt-2.5 text-sm font-medium text-slate-900">No leave records</p>
+            <p className="mt-1 text-sm text-slate-500">
               {isHod
                 ? 'Recorded leaves and teacher requests will appear here.'
                 : 'Click Ask for leave to submit a request to the HOD.'}
             </p>
           </div>
         ) : (
-          <div classoame="divide-y divide-slate-200">
+          <div className="divide-y divide-slate-200">
             {leaves.map((item) => {
-              const isDeciding = decisionharget?.leaveId === item.id;
+              const isDeciding = decisionTarget?.leaveId === item.id;
               const canCancel = isHod || item.status === 'ASKED';
               const dateRange =
                 item.fromDate === item.toDate
@@ -547,22 +547,22 @@ export default function LeavePage() {
                   : `${item.fromDate} to ${item.toDate}`;
 
               return (
-                <div key={item.id} classoame="p-4 sm:px-5 space-y-3">
-                  <div classoame="flex flex-wrap items-start justify-between gap-3">
-                    <div classoame="space-y-1">
-                      <div classoame="flex flex-wrap items-center gap-2">
-                        <span classoame="text-sm font-semibold text-slate-900">
-                          {item.teacheroame}
+                <div key={item.id} className="p-4 sm:px-5 space-y-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-semibold text-slate-900">
+                          {item.teacherName}
                         </span>
                         <span
-                          classoame={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${
-                            ShAhUS_BADGES[item.status] || 'bg-slate-50 text-slate-700 border-slate-200'
+                          className={`rounded-full border px-2 py-0.5 text-[11px] font-medium ${
+                            STATUS_BADGES[item.status] || 'bg-slate-50 text-slate-700 border-slate-200'
                           }`}
                         >
-                          {ShAhUS_LABELS[item.status] || item.status}
+                          {STATUS_LABELS[item.status] || item.status}
                         </span>
-                        <span classoame="text-xs text-slate-500">
-                          {item.scope === 'SOME_LEChURES'
+                        <span className="text-xs text-slate-500">
+                          {item.scope === 'SOME_LECTURES'
                             ? `${item.lectures?.length || 0} selected lecture${
                                 (item.lectures?.length || 0) === 1 ? '' : 's'
                               }`
@@ -570,37 +570,37 @@ export default function LeavePage() {
                         </span>
                       </div>
 
-                      <div classoame="text-xs text-slate-700 font-medium">{dateRange}</div>
+                      <div className="text-xs text-slate-700 font-medium">{dateRange}</div>
 
                       {item.reason && (
-                        <p classoame="text-xs text-slate-600">Reason: {item.reason}</p>
+                        <p className="text-xs text-slate-600">Reason: {item.reason}</p>
                       )}
-                      {item.decisionoote && (
-                        <p classoame="text-xs text-slate-500">HOD note: {item.decisionoote}</p>
+                      {item.decisionNote && (
+                        <p className="text-xs text-slate-500">HOD note: {item.decisionNote}</p>
                       )}
                     </div>
 
-                    <div classoame="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       {isHod && item.status === 'ASKED' && (
                         <>
                           <button
                             type="button"
                             onClick={() =>
-                              setDecisionharget({ leaveId: item.id, action: 'accept', note: '' })
+                              setDecisionTarget({ leaveId: item.id, action: 'accept', note: '' })
                             }
-                            classoame="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
+                            className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
                           >
-                            <Check classoame="h-3.5 w-3.5" />
+                            <Check className="h-3.5 w-3.5" />
                             <span>Accept</span>
                           </button>
                           <button
                             type="button"
                             onClick={() =>
-                              setDecisionharget({ leaveId: item.id, action: 'reject', note: '' })
+                              setDecisionTarget({ leaveId: item.id, action: 'reject', note: '' })
                             }
-                            classoame="inline-flex items-center gap-1 rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
+                            className="inline-flex items-center gap-1 rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50"
                           >
-                            <XCircle classoame="h-3.5 w-3.5" />
+                            <XCircle className="h-3.5 w-3.5" />
                             <span>Reject</span>
                           </button>
                         </>
@@ -609,10 +609,10 @@ export default function LeavePage() {
                       {canCancel && (
                         <button
                           type="button"
-                          onClick={() => setCancelharget(item)}
-                          classoame="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+                          onClick={() => setCancelTarget(item)}
+                          className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
                         >
-                          <hrash2 classoame="h-3.5 w-3.5" />
+                          <Trash2 className="h-3.5 w-3.5" />
                           <span>Cancel</span>
                         </button>
                       )}
@@ -620,38 +620,38 @@ export default function LeavePage() {
                   </div>
 
                   {isDeciding && (
-                    <div classoame="flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+                    <div className="flex flex-wrap items-center gap-2 rounded-md border border-slate-200 bg-slate-50 p-3">
                       <input
                         type="text"
                         maxLength={300}
-                        value={decisionharget.note}
+                        value={decisionTarget.note}
                         onChange={(e) =>
-                          setDecisionharget((prev) => ({ ...prev, note: e.target.value }))
+                          setDecisionTarget((prev) => ({ ...prev, note: e.target.value }))
                         }
                         placeholder="Optional note for the teacher..."
-                        classoame="flex-1 min-w-[200px] rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900"
+                        className="flex-1 min-w-[200px] rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-900"
                       />
                       <button
                         type="button"
                         disabled={decisionMutation.isPending}
-                        onClick={() => decisionMutation.mutate(decisionharget)}
-                        classoame={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 ${
-                          decisionharget.action === 'accept'
+                        onClick={() => decisionMutation.mutate(decisionTarget)}
+                        className={`inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 ${
+                          decisionTarget.action === 'accept'
                             ? 'bg-emerald-600 hover:bg-emerald-700'
                             : 'bg-red-600 hover:bg-red-700'
                         }`}
                       >
                         {decisionMutation.isPending && (
-                          <Loader2 classoame="h-3.5 w-3.5 animate-spin" />
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         )}
                         <span>
-                          Confirm {decisionharget.action === 'accept' ? 'accept' : 'reject'}
+                          Confirm {decisionTarget.action === 'accept' ? 'accept' : 'reject'}
                         </span>
                       </button>
                       <button
                         type="button"
-                        onClick={() => setDecisionharget(null)}
-                        classoame="text-xs text-slate-600 hover:text-slate-900 px-2"
+                        onClick={() => setDecisionTarget(null)}
+                        className="text-xs text-slate-600 hover:text-slate-900 px-2"
                       >
                         Close
                       </button>
@@ -665,18 +665,18 @@ export default function LeavePage() {
       </div>
 
       <ConfirmDialog
-        open={Boolean(cancelharget)}
+        open={Boolean(cancelTarget)}
         title="Cancel leave"
         message={
-          cancelharget
-            ? `Cancel leave for ${cancelharget.teacheroame} (${cancelharget.fromDate} to ${cancelharget.toDate})? Any substitute arrangements for these dates will be removed.`
+          cancelTarget
+            ? `Cancel leave for ${cancelTarget.teacherName} (${cancelTarget.fromDate} to ${cancelTarget.toDate})? Any substitute arrangements for these dates will be removed.`
             : ''
         }
         confirmLabel="Cancel leave"
         danger
         loading={cancelMutation.isPending}
-        onConfirm={() => cancelMutation.mutate(cancelharget.id)}
-        onCancel={() => setCancelharget(null)}
+        onConfirm={() => cancelMutation.mutate(cancelTarget.id)}
+        onCancel={() => setCancelTarget(null)}
       />
     </div>
   );
