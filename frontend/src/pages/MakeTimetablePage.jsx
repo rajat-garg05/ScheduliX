@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   ArrowLeft,
@@ -30,6 +31,7 @@ const STEPS = [
 
 export default function MakeTimetablePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isHod = user?.role === 'HOD';
 
@@ -230,6 +232,11 @@ export default function MakeTimetablePage() {
               onBackToStep={(targetStep) => {
                 setAutoMakeResult(false);
                 setStep(targetStep);
+              }}
+              onSaved={() => {
+                queryClient.invalidateQueries({ queryKey: ['timetable-drafts'] });
+                queryClient.invalidateQueries({ queryKey: ['timetable-tree'] });
+                navigate('/timetables');
               }}
             />
           )}

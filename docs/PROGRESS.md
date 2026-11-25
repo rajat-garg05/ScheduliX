@@ -8,7 +8,8 @@
 - Prompt 5 (All 6 milestones): Pure Java Timetable Engine (`com.schedulix.engine`).
 - Prompt 6 (All 9 milestones): Make Timetable, Steps 1 to 5.
 - Prompt 7, Milestones 1–4: Backend `POST /make`, `POST /make-again`, `PUT .../keep`, `POST /keep-all`, `POST /save`, `GET /delete-preview`, unified `DELETE /{id}`, `GET /{id}/view`, `GET /api/tree`, `GET /api/timetables/saved`, and `GET /api/sections/{id}/timetable`.
-- Prompt 7, Milestone 5: Built reusable `TimetableGrid.jsx`, `Step6Result.jsx` (Make progress, class tabs, Teachers tab, plain error panel with jump-back buttons), and wired **Make Timetable** in `MakeTimetablePage.jsx`.
+- Prompt 7, Milestone 5: Built reusable `TimetableGrid.jsx`, `Step6Result.jsx`, and wired **Make Timetable** in `MakeTimetablePage.jsx`.
+- Prompt 7, Milestone 6: Wired **Keep this lecture**, **Keep all**, **Make again**, and **Save timetable** (with confirmation dialog and redirect to `/timetables`) in `Step6Result.jsx` and `MakeTimetablePage.jsx`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -29,5 +30,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 7, Milestone 6: React — Keep this lecture, Keep all, Make again, and Save timetable.
-- Prompt 7, Milestone 7: React — Classes and Timetables tree page with View and Delete (with preview dialog).
+- Prompt 7, Milestone 7: React — Classes and Timetables tree page (`/timetables`) with View and Delete (with preview dialog) + final Prompt 7 `docs/PROGRESS.md` update.
