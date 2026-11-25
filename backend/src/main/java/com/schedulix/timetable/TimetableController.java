@@ -27,19 +27,22 @@ public class TimetableController {
     private final TimetableTeachersService teachersService;
     private final FixedLectureService fixedLectureService;
     private final TimetableMakeService makeService;
+    private final TimetableLifecycleService lifecycleService;
 
     public TimetableController(
             TimetableDraftService draftService,
             TimetableCheckService checkService,
             TimetableTeachersService teachersService,
             FixedLectureService fixedLectureService,
-            TimetableMakeService makeService
+            TimetableMakeService makeService,
+            TimetableLifecycleService lifecycleService
     ) {
         this.draftService = draftService;
         this.checkService = checkService;
         this.teachersService = teachersService;
         this.fixedLectureService = fixedLectureService;
         this.makeService = makeService;
+        this.lifecycleService = lifecycleService;
     }
 
     @GetMapping
@@ -146,9 +149,19 @@ public class TimetableController {
         return makeService.keepAll(id);
     }
 
+    @PostMapping("/{id}/save")
+    public TimetableViewResponse save(@PathVariable UUID id) {
+        return lifecycleService.save(id);
+    }
+
+    @GetMapping("/{id}/delete-preview")
+    public TimetableDeletePreviewResponse deletePreview(@PathVariable UUID id) {
+        return lifecycleService.deletePreview(id);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteDraft(@PathVariable UUID id) {
-        draftService.deleteDraft(id);
+    public void delete(@PathVariable UUID id) {
+        lifecycleService.delete(id);
     }
 }

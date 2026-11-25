@@ -6,9 +6,10 @@
 - Prompt 3 (All 7 milestones): Teachers, Subjects, and Who Can Teach What (`V3__teachers_subjects_who_can_teach.sql`, `UsageChecker`, `SubjectGroupValidator`, `CsvImportSupport`, CRUD + CSV import + React screens).
 - Prompt 4 (All 6 milestones): Semesters, Sections, and Semester Plans (`V4__semesters_sections_plans.sql`, `SavedTimetableLookup`, `PlanValidator`, CSV multi-section import, manual plan editing, `SemesterPlansPage`).
 - Prompt 5 (All 6 milestones): Pure Java Timetable Engine (`com.schedulix.engine`).
-- Prompt 6 (All 9 milestones): Make Timetable, Steps 1 to 5 (`V5__timetables.sql`, real `TimetableSavedLookup` & `TimetableUsageChecker`, draft CRUD, settings + day preview, `BusyCellService`, `EngineInputBuilder`, `/check`, `/teachers`, `/fixed-lectures`, and React wizard Steps 1–5).
-- Prompt 7, Milestone 1: Built `TimetableMakeService`, `TimetableViewResponse`, `TimetableMakeResponse`, `POST /api/timetables/{id}/make`, and `TimetableMakeIntegrationTest`.
-- Prompt 7, Milestone 2: Added `KeepLectureRequest`, `PUT /api/timetables/{id}/lectures/{lectureId}/keep`, `POST /api/timetables/{id}/keep-all`, `POST /api/timetables/{id}/make-again`, and `TimetableKeepAndMakeAgainIntegrationTest`.
+- Prompt 6 (All 9 milestones): Make Timetable, Steps 1 to 5.
+- Prompt 7, Milestone 1: `TimetableMakeService` and `POST /api/timetables/{id}/make` + `TimetableMakeIntegrationTest`.
+- Prompt 7, Milestone 2: `PUT .../keep`, `POST .../keep-all`, `POST .../make-again` + `TimetableKeepAndMakeAgainIntegrationTest`.
+- Prompt 7, Milestone 3: `TimetableLifecycleService`, `TimetableDeletePreviewResponse`, `POST /api/timetables/{id}/save` (fresh busy-cell verify, atomic save, unique index), `GET /api/timetables/{id}/delete-preview`, unified `DELETE /api/timetables/{id}`, and `TimetableSaveAndDeleteIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -29,4 +30,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 7, Milestone 3: Save (`POST /api/timetables/{id}/save` with fresh busy-cell verify, one transaction, unique index) and Delete with preview (`GET /api/timetables/{id}/delete-preview`, `DELETE /api/timetables/{id}`) + History + tests.
+- Prompt 7, Milestone 4: View data (`GET /api/timetables/{id}/view`), tree (`GET /api/tree`), and read-only endpoints for HOD and teachers (`GET /api/timetables/saved`, `GET /api/sections/{id}/timetable`) + tests.
