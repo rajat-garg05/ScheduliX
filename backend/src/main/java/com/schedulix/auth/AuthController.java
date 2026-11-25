@@ -24,17 +24,20 @@ public class AuthController {
 
     private final RegistrationService registrationService;
     private final SessionService sessionService;
+    private final PasswordService passwordService;
     private final boolean cookieSecure;
     private final long refreshDays;
 
     public AuthController(
             RegistrationService registrationService,
             SessionService sessionService,
+            PasswordService passwordService,
             @Value("${app.cookie.secure:false}") boolean cookieSecure,
             @Value("${app.jwt.refresh-days:7}") long refreshDays
     ) {
         this.registrationService = registrationService;
         this.sessionService = sessionService;
+        this.passwordService = passwordService;
         this.cookieSecure = cookieSecure;
         this.refreshDays = refreshDays;
     }
@@ -87,6 +90,24 @@ public class AuthController {
         sessionService.logout(refreshToken);
         addRefreshCookie(httpResponse, "", Duration.ZERO);
         return new MessageResponse("You have been logged out.");
+    }
+
+    @PostMapping("/forgot-password")
+    public MessageResponse forgotPassword(@Valid @RequestBody EmailRequest request, HttpServletRequest httpRequest) {
+        passwordService.forgotPassword(request.email(), extractClientIp(httpRequest));
+        return new MessageResponse("If this email exists, we sent a link.");
+    }
+
+    @PostMapping("/reset-password")
+    public MessageResponse resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordService.resetPassword(request);
+        return new MessageResponse("Your password has been reset. You can now log in.");
+    }
+
+    @PostMapping("/change-password")
+    public MessageResponse changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        passwordService.changePassword(request);
+        return new MessageResponse("Your password has been updated.");
     }
 
     private void addRefreshCookie(HttpServletResponse response, String value, Duration maxAge) {
