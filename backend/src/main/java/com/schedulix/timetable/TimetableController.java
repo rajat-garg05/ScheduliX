@@ -23,9 +23,14 @@ import java.util.UUID;
 public class TimetableController {
 
     private final TimetableDraftService draftService;
+    private final TimetableCheckService checkService;
 
-    public TimetableController(TimetableDraftService draftService) {
+    public TimetableController(
+            TimetableDraftService draftService,
+            TimetableCheckService checkService
+    ) {
         this.draftService = draftService;
+        this.checkService = checkService;
     }
 
     @GetMapping
@@ -60,6 +65,11 @@ public class TimetableController {
             @RequestBody TimetableSettings request
     ) {
         return draftService.updateSettings(id, request);
+    }
+
+    @PostMapping("/{id}/check")
+    public TimetableCheckResponse check(@PathVariable UUID id) {
+        return checkService.check(id);
     }
 
     @DeleteMapping("/{id}")

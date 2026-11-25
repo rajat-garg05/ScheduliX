@@ -9,7 +9,8 @@
 - Prompt 6, Milestone 1: Added `V5__timetables.sql`, JPA entities & repositories, `@Primary` `TimetableSavedLookup` & `TimetableUsageChecker`, draft CRUD (`TimetableDraftService`, `TimetableController`), and `TimetableDraftIntegrationTest`.
 - Prompt 6, Milestone 2: Built `TimetableSettings`, `DayPreviewSlot`, `TimetableSettingsResponse`, `TimetableSettingsSupport`, `PUT /api/timetables/{id}/settings`, and `TimetableSettingsSupportTest`.
 - Prompt 6, Milestone 3: Added `UpdateClassesRequest`, `PUT /api/timetables/{id}/classes`, and `TimetableClassesIntegrationTest`.
-- Prompt 6, Milestone 4: Built `BusyCellService` (real clock-time overlap mapping across different start times) and `EngineInputBuilder` + `BusyCellServiceTest`.
+- Prompt 6, Milestone 4: Built `BusyCellService` and `EngineInputBuilder` + `BusyCellServiceTest`.
+- Prompt 6, Milestone 5: Built `TimetableCheckService`, `TimetableCheckResponse`, `POST /api/timetables/{id}/check`, and `TimetableCheckIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -45,4 +46,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 6, Milestone 5: Check step (`POST /api/timetables/{id}/check`) returning plain problems with fix links + tests.
+- Prompt 6, Milestone 6: Teachers step (`GET/PUT /api/timetables/{id}/teachers`, `POST .../suggest`) — suggestions, manual override with warning, paired-lab check, and workload totals + tests.
