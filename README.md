@@ -2,18 +2,29 @@
 
 Timetable management for a college department.
 
-The HOD manages teachers, subjects, and semester plans, generates class timetables, locks preferred slots, and handles daily teacher leave and substitutes. Teachers can view department timetables, their own schedule, today's substitutions, and submit leave requests.
+The HOD sets up teachers, subjects, and semester plans, builds timetables for classes in one go, keeps preferred lectures, and handles daily teacher leave with substitutes. Teachers can view department timetables, their own weekly schedule, today's substitutes, and submit leave requests.
 
-## Stack
-- Backend: Java 21, Spring Boot, PostgreSQL, Flyway
-- Frontend: React, Vite (JavaScript), Tailwind CSS
-- Local database: Docker Compose
+## Requirements
+- JDK 21
+- Maven 3.9+
+- Node.js 20+ and npm
+- Docker Desktop (running)
 
 ## Project layout
-- `backend/` - Spring Boot API and timetable engine
-- `frontend/` - React web app
-- `docs/` - Build progress and notes
-- `scripts/` - Local PowerShell helpers
+- `backend/` - Single-module Spring Boot API and timetable engine
+- `frontend/` - React + Vite (JavaScript) + Tailwind CSS web app
+- `docs/` - Progress notes (`docs/PROGRESS.md`)
+- `scripts/` - Local PowerShell helpers (`start.ps1`, `test.ps1`)
+- `docker-compose.yml` - Local PostgreSQL 16 database
 
-## Running locally
-Setup and run steps will be added once the backend, database, and frontend are wired up.
+## Quick start (Windows PowerShell)
+Make sure Docker Desktop is running, then from the `schedulix` folder:
+
+```powershell
+# First time only: install frontend packages
+cd frontend
+npm install
+cd ..
+
+# Start PostgreSQL, backend, and frontend
+.\scripts\start.ps1
