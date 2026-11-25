@@ -1,0 +1,16 @@
+subjectCode,name,classification,periodsInARow,runsTogetherGroup,sharedPlace
+CS301,Data Structures,THEORY,1,,
+MA301,Discrete Mathematics,THEORY,1,,
+CS303,Computer Organization,THEORY,1,,
+CS304,Object Oriented Programming,THEORY,1,,
+CS305,Digital Logic Design,THEORY,1,,
+HS306,Universal Human Values,THEORY,1,,
+CS351,Data Structures Lab,LAB,2,LABGROUP-S3,Computer Lab 1
+CS352,Java Programming Lab,LAB,2,LABGROUP-S3,Computer Lab 2
+CS501,Database Management Systems,THEORY,1,,
+CS502,Operating Systems,THEORY,1,,
+CS503,Computer Networks,THEORY,1,,
+CS504,Design and Analysis of Algorithms,THEORY,1,,
+CS551,DBMS Lab,LAB,2,LABGROUP-S5,Computer Lab 1
+CS552,Operating Systems Lab,LAB,2,LABGROUP-S5,Computer Lab 2
+CS553,Computer Networks Lab,LAB,2,,Networks Lab

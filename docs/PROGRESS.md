@@ -11,7 +11,8 @@
 - Prompt 8 (All 7 milestones): Leave, Substitutes, Today, and Teacher Views (`V6__leave_substitutes.sql`, `LeaveService`, `SubstituteService`, `TodayAndMyTimetableService`, `LeavePage`, `TodayPage`, `AllTimetablesPage`, `MyTimetablePage`, extended `TimetableUsageChecker`).
 - Prompt 9, Milestone 1: Role-based `GET /api/dashboard` and HOD/Teacher `DashboardPage.jsx`.
 - Prompt 9, Milestone 2: Plain words audit applied across frontend pages and `TimetableLifecycleService`.
-- Prompt 9, Milestone 3: Look and feel pass — added `:focus-visible` outlines and font antialiasing in `index.css`, and added a responsive day-switcher phone view to `TimetableGrid.jsx`.
+- Prompt 9, Milestone 3: Look and feel pass (`index.css` focus rings + responsive phone view in `TimetableGrid.jsx`).
+- Prompt 9, Milestone 4: Added 5 sample CSVs under `backend/src/main/resources/sample/`, `DevSampleDataLoader` (`@Profile("dev")` + runtime guard, loads through normal endpoints without making timetables), and `DevSampleDataLoaderTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -34,7 +35,6 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 9, Milestone 4: Dev-only sample data loader (`backend/src/main/resources/sample/*.csv`).
 - Prompt 9, Milestone 5: Playwright full journey test.
 - Prompt 9, Milestone 6: Security and speed checks.
 - Prompt 9, Milestone 7: Deployment files and free-hosting guide.
