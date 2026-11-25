@@ -19,6 +19,7 @@ import TeacherSubjectsPage from './pages/TeacherSubjectsPage';
 import SemesterPlansPage from './pages/SemesterPlansPage';
 import MakeTimetablePage from './pages/MakeTimetablePage';
 import ClassesTimetablesPage from './pages/ClassesTimetablesPage';
+import LeavePage from './pages/LeavePage';
 import DashboardPage from './pages/DashboardPage';
 import ComingSoonPage from './pages/ComingSoonPage';
 
@@ -65,7 +66,7 @@ export default function App() {
                 <Route path="/setup/semester-plans" element={<SemesterPlansPage />} />
                 <Route path="/timetables" element={<ClassesTimetablesPage />} />
                 <Route path="/make-timetable" element={<MakeTimetablePage />} />
-                <Route path="/leave" element={<ComingSoonPage title="Leave" />} />
+                <Route path="/leave" element={<LeavePage />} />
                 <Route path="/today" element={<ComingSoonPage title="Today" />} />
 
                 {/* Teacher sections */}
