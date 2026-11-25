@@ -1,21 +1,36 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, ChevronDown, KeyRound, LogOut, Menu, User, X } from 'lucide-react';
+import api from '../api/client';
 import { useAuth } from '../features/auth/authContext';
 import { MENU_BY_ROLE } from './menuItems';
 
 export default function AppShell() {
-  const { user, logout } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const menuItems = MENU_BY_ROLE[user?.role] || [];
-  const unreadCount = 0;
 
-  function handleLogout() {
+  const { data: unreadData } = useQuery({
+    queryKey: ['notifications', 'unread-count'],
+    queryFn: async () => {
+      const res = await api.get('/notifications/unread-count');
+      return res.data;
+    },
+    enabled: isLoggedIn && !user?.mustChangePassword,
+    refetchInterval: 60000,
+  });
+
+  const unreadCount = unreadData?.count || 0;
+
+  async function handleLogout() {
     setProfileOpen(false);
-    logout();
+    await logout();
+    queryClient.clear();
     navigate('/login', { replace: true });
   }
 
@@ -141,7 +156,7 @@ export default function AppShell() {
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-blue-700 text-white text-[11px] font-medium flex items-center justify-center">
-                  {unreadCount}
+                  {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
             </Link>

@@ -11,6 +11,8 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import NotificationsPage from './pages/NotificationsPage';
+import HistoryPage from './pages/HistoryPage';
 import DashboardPage from './pages/DashboardPage';
 import ComingSoonPage from './pages/ComingSoonPage';
 
@@ -47,7 +49,8 @@ export default function App() {
 
               <Route element={<AppShell />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
-                <Route path="/notifications" element={<ComingSoonPage title="Notifications" />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/history" element={<HistoryPage />} />
 
                 {/* HOD sections */}
                 <Route path="/setup/teachers" element={<ComingSoonPage title="Teachers" />} />
@@ -58,7 +61,6 @@ export default function App() {
                 <Route path="/make-timetable" element={<ComingSoonPage title="Make Timetable" />} />
                 <Route path="/leave" element={<ComingSoonPage title="Leave" />} />
                 <Route path="/today" element={<ComingSoonPage title="Today" />} />
-                <Route path="/history" element={<ComingSoonPage title="History" />} />
 
                 {/* Teacher sections */}
                 <Route path="/all-timetables" element={<ComingSoonPage title="All timetables" />} />
