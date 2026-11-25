@@ -35,7 +35,12 @@ public final class TimetableEngine {
             return new EngineResult(false, List.of(), List.of(ctx.buildFailureMessage()));
         }
 
-        return new EngineResult(true, ctx.toPlacedLectures(), List.of());
+        List<PlacedLecture> placed = ctx.toPlacedLectures();
+        List<String> verifyProblems = EngineChecks.verify(in, placed);
+        if (!verifyProblems.isEmpty()) {
+            return new EngineResult(false, List.of(), verifyProblems);
+        }
+        return new EngineResult(true, placed, List.of());
     }
 
     private record PieceMember(

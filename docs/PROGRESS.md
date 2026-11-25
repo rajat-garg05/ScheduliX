@@ -8,7 +8,8 @@
 - Prompt 5, Milestone 1: Created pure Java `com.schedulix.engine` contract records, `TimeGrid`, and `TimeGridTest`.
 - Prompt 5, Milestone 2: Built `EngineChecks.check(EngineInput)` + `EngineChecksTest`.
 - Prompt 5, Milestone 3: Built `Suggestion` record and `TeacherSuggester.suggest(EngineInput)` + `TeacherSuggesterTest`.
-- Prompt 5, Milestone 4: Built backtracking search (`TimetableEngine.make`) with hardest-first ordering, forward checking, gap scoring, deterministic `variation` tie-breaking, paired labs, shared places, busy cells, fixed lectures, and `TimetableEngineTest`.
+- Prompt 5, Milestone 4: Built backtracking search (`TimetableEngine.make`) + `TimetableEngineTest`.
+- Prompt 5, Milestone 5: Built independent `EngineChecks.verify(EngineInput, List<PlacedLecture>)`, wired it into `TimetableEngine.make`, and added `EngineVerifyAndBruteForceTest` (broken-timetable checks + 30 random tiny brute-force comparisons).
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes (`DefaultUsageChecker` and `DefaultSavedTimetableLookup` use plain `@Component`). When Prompt 6/8 provides real implementations of `UsageChecker` and `SavedTimetableLookup`, replace the default class or mark the real bean `@Primary`.
@@ -29,7 +30,7 @@
 
 ## Engine contract (`com.schedulix.engine`)
 - Records: `EngineSettings`, `EngineClass`, `EngineSubject`, `PlanLine`, `EngineTeacher`, `TeacherChoice`, `FixedLecture`, `BusyCell`, `EngineInput`, `PlacedLecture`, `EngineResult`, `Suggestion`
-- Helpers: `TimeGrid`, `EngineChecks.check(EngineInput)`, `TeacherSuggester.suggest(EngineInput)`, `TimetableEngine.make(EngineInput, int)`
+- Helpers: `TimeGrid`, `EngineChecks.check(EngineInput)`, `EngineChecks.verify(EngineInput, List<PlacedLecture>)`, `TeacherSuggester.suggest(EngineInput)`, `TimetableEngine.make(EngineInput, int)`
 
 ## Database migrations
 - `V1__baseline.sql`
@@ -44,4 +45,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 5, Milestone 5: `EngineChecks.verify(EngineInput, List<PlacedLecture>)` + brute-force comparison test on small random problems.
+- Prompt 5, Milestone 6: 45-second time limit, node-limit restarts, deterministic `variation` behavior, realistic department speed check (12 classes, ~250 lectures), and final Prompt 5 `docs/PROGRESS.md` update.

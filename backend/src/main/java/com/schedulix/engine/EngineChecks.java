@@ -233,6 +233,248 @@ public final class EngineChecks {
         return problems;
     }
 
+    public static List<String> verify(EngineInput in, List<PlacedLecture> lectures) {
+        List<String> problems = new ArrayList<>();
+        if (in == null || in.settings() == null) {
+            problems.add("Timetable settings are missing.");
+            return problems;
+        }
+        if (lectures == null) {
+            problems.add("No lectures were provided to verify.");
+            return problems;
+        }
+
+        EngineSettings settings = in.settings();
+        TimeGrid grid = TimeGrid.from(settings);
+
+        Map<String, EngineClass> classById = new LinkedHashMap<>();
+        for (EngineClass c : in.classes()) {
+            classById.put(c.id(), c);
+        }
+        Map<String, EngineSubject> subjectById = new LinkedHashMap<>();
+        for (EngineSubject s : in.subjects()) {
+            subjectById.put(s.id(), s);
+        }
+        Map<String, EngineTeacher> teacherById = new LinkedHashMap<>();
+        for (EngineTeacher t : in.teachers()) {
+            teacherById.put(t.id(), t);
+        }
+        Map<String, String> choiceByPair = new HashMap<>();
+        for (TeacherChoice c : in.choices()) {
+            choiceByPair.put(pairKey(c.classId(), c.subjectId()), c.teacherId());
+        }
+        Map<String, PlanLine> planByPair = new LinkedHashMap<>();
+        Map<String, Set<String>> expectedGroupSubjects = new HashMap<>();
+        for (PlanLine line : in.plan()) {
+            planByPair.put(pairKey(line.classId(), line.subjectId()), line);
+            EngineSubject sub = subjectById.get(line.subjectId());
+            if (sub != null && sub.lab() && hasText(sub.groupName())) {
+                String key = line.classId() + "|" + normalizeKey(sub.groupName());
+                expectedGroupSubjects.computeIfAbsent(key, k -> new LinkedHashSet<>()).add(sub.id());
+            }
+        }
+
+        // Busy cells
+        Set<String> busyTeacherCells = new HashSet<>();
+        Map<String, int[]> teacherDayTotal = new HashMap<>();
+        for (BusyCell cell : in.busyTeachers()) {
+            if (cell.owner() == null || !grid.isValidDay(cell.day()) || !grid.isValidLecture(cell.lecture())) {
+                continue;
+            }
+            if (busyTeacherCells.add(cell.owner() + "|" + slotKey(cell.day(), cell.lecture()))) {
+                teacherDayTotal.computeIfAbsent(cell.owner(), k -> new int[grid.workingDays()])[cell.day()]++;
+            }
+        }
+
+        Set<String> busyPlaceCells = new HashSet<>();
+        for (BusyCell cell : in.busyPlaces()) {
+            if (hasText(cell.owner()) && grid.isValidDay(cell.day()) && grid.isValidLecture(cell.lecture())) {
+                busyPlaceCells.add(normalizeKey(cell.owner()) + "|" + slotKey(cell.day(), cell.lecture()));
+            }
+        }
+
+        Map<String, Integer> placedLecturesByPair = new HashMap<>();
+        Map<String, Map<Integer, Integer>> placedPiecesByPairDay = new HashMap<>();
+        Map<String, List<PlacedLecture>> classCellOccupancy = new HashMap<>();
+        Set<String> teacherSlotOccupancy = new HashSet<>();
+        Set<String> placeSlotOccupancy = new HashSet<>();
+        Map<String, Set<String>> groupSlotSubjects = new HashMap<>();
+        Set<String> placedExactKeys = new HashSet<>();
+
+        for (PlacedLecture lec : lectures) {
+            EngineClass cls = classById.get(lec.classId());
+            EngineSubject sub = subjectById.get(lec.subjectId());
+            EngineTeacher teacher = teacherById.get(lec.teacherId());
+
+            if (cls == null || sub == null || teacher == null) {
+                problems.add("A placed lecture references an unknown class, subject, or teacher.");
+                continue;
+            }
+
+            String pKey = pairKey(cls.id(), sub.id());
+            if (!planByPair.containsKey(pKey)) {
+                problems.add(sub.name() + " in " + cls.name() + " is not in the semester plan.");
+            }
+
+            String expectedTeacher = choiceByPair.get(pKey);
+            if (expectedTeacher == null || !expectedTeacher.equals(teacher.id())) {
+                problems.add(sub.name() + " in " + cls.name() + " was assigned to " + teacher.name()
+                        + " instead of the chosen teacher.");
+            }
+
+            int expectedLen = Math.max(1, sub.periodsInARow());
+            if (lec.length() != expectedLen) {
+                problems.add(sub.name() + " in " + cls.name() + " has length " + lec.length()
+                        + " instead of " + expectedLen + ".");
+            }
+
+            if (!grid.isValidDay(lec.day()) || !grid.isValidStart(lec.startLecture(), lec.length())) {
+                problems.add(sub.name() + " in " + cls.name() + " on Day " + (lec.day() + 1)
+                        + " crosses a break or falls outside working hours.");
+                continue;
+            }
+
+            placedLecturesByPair.merge(pKey, lec.length(), Integer::sum);
+            placedPiecesByPairDay
+                    .computeIfAbsent(pKey, k -> new HashMap<>())
+                    .merge(lec.day(), 1, Integer::sum);
+            placedExactKeys.add(pKey + "@" + lec.day() + ":" + lec.startLecture());
+
+            if (sub.lab() && hasText(sub.groupName())) {
+                String groupSlotKey = cls.id() + "|" + normalizeKey(sub.groupName())
+                        + "@" + lec.day() + ":" + lec.startLecture();
+                groupSlotSubjects.computeIfAbsent(groupSlotKey, k -> new HashSet<>()).add(sub.id());
+            }
+
+            for (int off = 0; off < lec.length(); off++) {
+                int slot = lec.startLecture() + off;
+                String sKey = slotKey(lec.day(), slot);
+
+                classCellOccupancy
+                        .computeIfAbsent(cls.id() + "|" + sKey, k -> new ArrayList<>())
+                        .add(lec);
+
+                String tCell = teacher.id() + "|" + sKey;
+                if (busyTeacherCells.contains(tCell)) {
+                    problems.add(teacher.name() + " is already busy in another saved timetable on Day "
+                            + (lec.day() + 1) + ", lecture " + slot + ".");
+                }
+                if (!teacherSlotOccupancy.add(tCell)) {
+                    problems.add(teacher.name() + " is scheduled in two classes at once on Day "
+                            + (lec.day() + 1) + ", lecture " + slot + ".");
+                }
+                teacherDayTotal.computeIfAbsent(teacher.id(), k -> new int[grid.workingDays()])[lec.day()]++;
+
+                if (hasText(sub.placeName())) {
+                    String pCell = normalizeKey(sub.placeName()) + "|" + sKey;
+                    if (busyPlaceCells.contains(pCell)) {
+                        problems.add(sub.placeName().trim() + " is already busy in another saved timetable on Day "
+                                + (lec.day() + 1) + ", lecture " + slot + ".");
+                    }
+                    if (!placeSlotOccupancy.add(pCell)) {
+                        problems.add(sub.placeName().trim() + " is double-booked on Day "
+                                + (lec.day() + 1) + ", lecture " + slot + ".");
+                    }
+                }
+            }
+        }
+
+        // Check class cell overlaps (only valid when all items in the cell belong to one paired-lab group)
+        for (Map.Entry<String, List<PlacedLecture>> entry : classCellOccupancy.entrySet()) {
+            List<PlacedLecture> cellItems = entry.getValue();
+            if (cellItems.size() <= 1) continue;
+
+            PlacedLecture first = cellItems.get(0);
+            EngineSubject firstSub = subjectById.get(first.subjectId());
+            String firstGroup = (firstSub != null && firstSub.lab() && hasText(firstSub.groupName()))
+                    ? normalizeKey(firstSub.groupName())
+                    : null;
+
+            boolean validGroupOverlap = firstGroup != null;
+            Set<String> seenSubIds = new HashSet<>();
+            for (PlacedLecture item : cellItems) {
+                EngineSubject sub = subjectById.get(item.subjectId());
+                if (sub == null || !sub.lab() || !hasText(sub.groupName())
+                        || !normalizeKey(sub.groupName()).equals(firstGroup)
+                        || item.startLecture() != first.startLecture()
+                        || item.length() != first.length()
+                        || !seenSubIds.add(sub.id())) {
+                    validGroupOverlap = false;
+                    break;
+                }
+            }
+            if (!validGroupOverlap) {
+                EngineClass cls = classById.get(first.classId());
+                problems.add((cls != null ? cls.name() : first.classId())
+                        + " has overlapping lectures on Day " + (first.day() + 1) + ".");
+            }
+        }
+
+        // Check every paired-lab slot contains all subjects of that group together
+        for (Map.Entry<String, Set<String>> entry : groupSlotSubjects.entrySet()) {
+            String key = entry.getKey();
+            String classAndGroup = key.substring(0, key.indexOf('@'));
+            Set<String> expected = expectedGroupSubjects.getOrDefault(classAndGroup, Set.of());
+            if (!entry.getValue().equals(expected)) {
+                problems.add("A paired lab group was split across different times instead of running together.");
+            }
+        }
+
+        // Check exact weekly totals and per-day subject limits
+        for (PlanLine line : in.plan()) {
+            EngineClass cls = classById.get(line.classId());
+            EngineSubject sub = subjectById.get(line.subjectId());
+            if (cls == null || sub == null) continue;
+
+            String pKey = pairKey(cls.id(), sub.id());
+            int placedTotal = placedLecturesByPair.getOrDefault(pKey, 0);
+            if (placedTotal != line.lecturesPerWeek()) {
+                problems.add(sub.name() + " in " + cls.name() + " has " + placedTotal
+                        + " placed lectures instead of " + line.lecturesPerWeek() + ".");
+            }
+
+            int blockSize = Math.max(1, sub.periodsInARow());
+            int totalPieces = line.lecturesPerWeek() / blockSize;
+            int maxPerDay = (int) Math.ceil((double) totalPieces / grid.workingDays());
+            Map<Integer, Integer> perDay = placedPiecesByPairDay.getOrDefault(pKey, Map.of());
+            for (Map.Entry<Integer, Integer> dayEntry : perDay.entrySet()) {
+                if (dayEntry.getValue() > maxPerDay) {
+                    problems.add(sub.name() + " in " + cls.name() + " appears " + dayEntry.getValue()
+                            + " times on Day " + (dayEntry.getKey() + 1)
+                            + " (maximum " + maxPerDay + " per day).");
+                }
+            }
+        }
+
+        // Check teacher daily maximums (including busy cells)
+        for (Map.Entry<String, int[]> entry : teacherDayTotal.entrySet()) {
+            EngineTeacher teacher = teacherById.get(entry.getKey());
+            String name = teacher != null ? teacher.name() : entry.getKey();
+            int[] perDay = entry.getValue();
+            for (int d = 0; d < grid.workingDays(); d++) {
+                if (perDay[d] > settings.maxPerTeacherPerDay()) {
+                    problems.add(name + " has " + perDay[d] + " lectures on Day " + (d + 1)
+                            + ", exceeding the daily maximum of " + settings.maxPerTeacherPerDay() + ".");
+                }
+            }
+        }
+
+        // Check all fixed lectures are honoured
+        for (FixedLecture fl : in.fixed()) {
+            String exact = pairKey(fl.classId(), fl.subjectId()) + "@" + fl.day() + ":" + fl.startLecture();
+            if (!placedExactKeys.contains(exact)) {
+                EngineClass cls = classById.get(fl.classId());
+                EngineSubject sub = subjectById.get(fl.subjectId());
+                String label = (sub != null ? sub.name() : fl.subjectId())
+                        + " in " + (cls != null ? cls.name() : fl.classId());
+                problems.add("Fixed lecture for " + label + " on Day " + (fl.day() + 1)
+                        + ", lecture " + fl.startLecture() + " was moved or missing.");
+            }
+        }
+
+        return problems;
+    }
+
     private static void validateClassGroup(
             EngineClass cls,
             List<PlanLine> members,
@@ -267,7 +509,6 @@ public final class EngineChecks {
             }
         }
 
-        // Different teachers and different places within the group
         for (int i = 0; i < members.size(); i++) {
             EngineSubject subA = subjectById.get(members.get(i).subjectId());
             String teacherA = teacherChoiceByPair.get(pairKey(cls.id(), subA.id()));
@@ -358,7 +599,6 @@ public final class EngineChecks {
                     ? sub.groupName().trim() + " in " + cls.name()
                     : sub.name() + " in " + cls.name();
 
-            // Deduplicate if two labs of the same group are both fixed at the exact same slot
             if (!seenNormalizedFixed.add(pieceKey + "@" + fl.day() + ":" + fl.startLecture())) {
                 continue;
             }
@@ -385,7 +625,6 @@ public final class EngineChecks {
                         + " on Day " + (fl.day() + 1) + " (maximum " + maxPerDay + " per day).");
             }
 
-            // Check slot overlaps for class, teachers, and shared places
             for (int offset = 0; offset < length; offset++) {
                 int lecture = fl.startLecture() + offset;
                 String sKey = slotKey(fl.day(), lecture);
@@ -437,7 +676,6 @@ public final class EngineChecks {
             }
         }
 
-        // Check if fixed lectures + busy cells already exceed a teacher's daily max
         for (Map.Entry<String, int[]> entry : fixedTeacherPerDay.entrySet()) {
             String teacherId = entry.getKey();
             int[] fixedPerDay = entry.getValue();
