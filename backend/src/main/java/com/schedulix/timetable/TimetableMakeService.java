@@ -92,6 +92,55 @@ public class TimetableMakeService {
     }
 
     @Transactional
+    public TimetableMakeResponse makeAgain(UUID timetableId) {
+        return runMake(timetableId, true);
+    }
+
+    @Transactional
+    public TimetableViewResponse setLectureKept(UUID timetableId, UUID lectureId, boolean kept) {
+        UUID deptId = currentUser.departmentId();
+        Timetable tt = draftService.loadOwnedDraft(timetableId, deptId);
+        Lecture target = lectureRepository.findByIdAndTimetableId(lectureId, tt.getId())
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LECTURE_NOT_FOUND", "Lecture not found."));
+
+        if (!kept && isStep5Fixed(tt, target)) {
+            throw new AppException(
+                    HttpStatus.BAD_REQUEST,
+                    "FIXED_LECTURE_LOCKED",
+                    "This lecture was fixed in Step 5 and cannot be unpinned here."
+            );
+        }
+
+        if (target.getGroupKey() != null) {
+            List<Lecture> siblings = lectureRepository.findByTimetableIdAndGroupKey(tt.getId(), target.getGroupKey());
+            for (Lecture sibling : siblings) {
+                sibling.setKept(kept);
+            }
+            lectureRepository.saveAll(siblings);
+        } else {
+            target.setKept(kept);
+            lectureRepository.save(target);
+        }
+        lectureRepository.flush();
+
+        return buildView(tt, null, null);
+    }
+
+    @Transactional
+    public TimetableViewResponse keepAll(UUID timetableId) {
+        UUID deptId = currentUser.departmentId();
+        Timetable tt = draftService.loadOwnedDraft(timetableId, deptId);
+        List<Lecture> lectures = lectureRepository.findByTimetableId(tt.getId());
+        for (Lecture lec : lectures) {
+            lec.setKept(true);
+        }
+        lectureRepository.saveAll(lectures);
+        lectureRepository.flush();
+
+        return buildView(tt, null, null);
+    }
+
+    @Transactional
     public TimetableMakeResponse runMake(UUID timetableId, boolean incrementVariation) {
         UUID deptId = currentUser.departmentId();
         if (!activeDepartmentMakes.add(deptId)) {
@@ -250,7 +299,6 @@ public class TimetableMakeService {
             teacherById.put(t.getId(), t);
         }
 
-        // Identify fixed lectures from step 5 (including paired-lab group siblings at the same slot)
         Set<String> fixedExactKeys = new HashSet<>();
         Set<String> fixedGroupKeys = new HashSet<>();
         for (FixedLectureEntity fl : fixedLectureRepository.findByTimetableId(tt.getId())) {
@@ -330,7 +378,32 @@ public class TimetableMakeService {
         );
     }
 
-    // Package-private helper for testing the per-department lock directly
+    private boolean isStep5Fixed(Timetable tt, Lecture target) {
+        Subject targetSub = subjectRepository.findById(target.getSubjectId()).orElse(null);
+        String targetGroup = (targetSub != null && targetSub.getKind() == SubjectKind.LAB
+                && targetSub.getRunTogetherGroup() != null && !targetSub.getRunTogetherGroup().isBlank())
+                ? targetSub.getRunTogetherGroup().trim().toLowerCase(Locale.ROOT)
+                : null;
+
+        for (FixedLectureEntity fl : fixedLectureRepository.findByTimetableId(tt.getId())) {
+            if (!fl.getSectionId().equals(target.getSectionId())) continue;
+            if (fl.getDayOfWeek() != target.getDayOfWeek()) continue;
+            if (fl.getStartLecture() != target.getStartLecture()) continue;
+            if (fl.getSubjectId().equals(target.getSubjectId())) {
+                return true;
+            }
+            if (targetGroup != null) {
+                Subject flSub = subjectRepository.findById(fl.getSubjectId()).orElse(null);
+                if (flSub != null && flSub.getKind() == SubjectKind.LAB
+                        && flSub.getRunTogetherGroup() != null
+                        && flSub.getRunTogetherGroup().trim().toLowerCase(Locale.ROOT).equals(targetGroup)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     boolean tryAcquireDepartmentLock(UUID departmentId) {
         return activeDepartmentMakes.add(departmentId);
     }

@@ -5,11 +5,16 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface LectureRepository extends JpaRepository<Lecture, UUID> {
 
     List<Lecture> findByTimetableId(UUID timetableId);
+
+    Optional<Lecture> findByIdAndTimetableId(UUID id, UUID timetableId);
+
+    List<Lecture> findByTimetableIdAndGroupKey(UUID timetableId, UUID groupKey);
 
     void deleteByTimetableId(UUID timetableId);
 

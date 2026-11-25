@@ -7,7 +7,8 @@
 - Prompt 4 (All 6 milestones): Semesters, Sections, and Semester Plans (`V4__semesters_sections_plans.sql`, `SavedTimetableLookup`, `PlanValidator`, CSV multi-section import, manual plan editing, `SemesterPlansPage`).
 - Prompt 5 (All 6 milestones): Pure Java Timetable Engine (`com.schedulix.engine`).
 - Prompt 6 (All 9 milestones): Make Timetable, Steps 1 to 5 (`V5__timetables.sql`, real `TimetableSavedLookup` & `TimetableUsageChecker`, draft CRUD, settings + day preview, `BusyCellService`, `EngineInputBuilder`, `/check`, `/teachers`, `/fixed-lectures`, and React wizard Steps 1–5).
-- Prompt 7, Milestone 1: Built `TimetableMakeService`, `TimetableViewResponse`, `TimetableMakeResponse`, `POST /api/timetables/{id}/make` (per-department lock, real clock times, paired-lab `group_key` UUIDs, kept+fixed preservation), and `TimetableMakeIntegrationTest`.
+- Prompt 7, Milestone 1: Built `TimetableMakeService`, `TimetableViewResponse`, `TimetableMakeResponse`, `POST /api/timetables/{id}/make`, and `TimetableMakeIntegrationTest`.
+- Prompt 7, Milestone 2: Added `KeepLectureRequest`, `PUT /api/timetables/{id}/lectures/{lectureId}/keep`, `POST /api/timetables/{id}/keep-all`, `POST /api/timetables/{id}/make-again`, and `TimetableKeepAndMakeAgainIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -28,4 +29,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 7, Milestone 2: Keep (`PUT /api/timetables/{id}/lectures/{lectureId}/keep`), Keep all (`POST .../keep-all`), and Make again (`POST .../make-again` incrementing `variation`) + tests.
+- Prompt 7, Milestone 3: Save (`POST /api/timetables/{id}/save` with fresh busy-cell verify, one transaction, unique index) and Delete with preview (`GET /api/timetables/{id}/delete-preview`, `DELETE /api/timetables/{id}`) + History + tests.

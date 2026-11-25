@@ -127,6 +127,25 @@ public class TimetableController {
         return makeService.make(id);
     }
 
+    @PostMapping("/{id}/make-again")
+    public TimetableMakeResponse makeAgain(@PathVariable UUID id) {
+        return makeService.makeAgain(id);
+    }
+
+    @PutMapping("/{id}/lectures/{lectureId}/keep")
+    public TimetableViewResponse keepLecture(
+            @PathVariable UUID id,
+            @PathVariable UUID lectureId,
+            @RequestBody KeepLectureRequest request
+    ) {
+        return makeService.setLectureKept(id, lectureId, request.kept());
+    }
+
+    @PostMapping("/{id}/keep-all")
+    public TimetableViewResponse keepAll(@PathVariable UUID id) {
+        return makeService.keepAll(id);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteDraft(@PathVariable UUID id) {
