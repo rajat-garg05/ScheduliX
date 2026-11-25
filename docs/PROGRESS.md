@@ -10,10 +10,12 @@
 - Prompt 6, Milestone 2: Built `TimetableSettings`, `DayPreviewSlot`, `TimetableSettingsResponse`, `TimetableSettingsSupport`, `PUT /api/timetables/{id}/settings`, and `TimetableSettingsSupportTest`.
 - Prompt 6, Milestone 3: Added `UpdateClassesRequest`, `PUT /api/timetables/{id}/classes`, and `TimetableClassesIntegrationTest`.
 - Prompt 6, Milestone 4: Built `BusyCellService` and `EngineInputBuilder` + `BusyCellServiceTest`.
-- Prompt 6, Milestone 5: Built `TimetableCheckService`, `TimetableCheckResponse`, `POST /api/timetables/{id}/check`, and `TimetableCheckIntegrationTest`.
+- Prompt 6, Milestone 5: Built `TimetableCheckService`, `POST /api/timetables/{id}/check`, and `TimetableCheckIntegrationTest`.
+- Prompt 6, Milestone 6: Built `TimetableTeachersService`, `TimetableTeachersResponse`, `UpdateTeacherChoiceRequest`, `GET/PUT /api/timetables/{id}/teachers`, `POST /api/timetables/{id}/teachers/suggest`, and `TimetableTeachersIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
+- Request DTO for linking teacher subjects in `com.schedulix.setup` is `TeacherSubjectsRequest`.
 - `com.schedulix.engine` is strictly plain Java (no Spring, no JPA, no JSON libraries).
 
 ## Shared backend helpers (use these exact names in later prompts)
@@ -46,4 +48,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 6, Milestone 6: Teachers step (`GET/PUT /api/timetables/{id}/teachers`, `POST .../suggest`) — suggestions, manual override with warning, paired-lab check, and workload totals + tests.
+- Prompt 6, Milestone 7: Fixed lectures step (`GET/POST/DELETE /api/timetables/{id}/fixed-lectures`) with immediate clash, break, shared-place, and count checks + tests.

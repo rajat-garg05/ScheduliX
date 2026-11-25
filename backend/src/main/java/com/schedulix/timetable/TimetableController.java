@@ -24,13 +24,16 @@ public class TimetableController {
 
     private final TimetableDraftService draftService;
     private final TimetableCheckService checkService;
+    private final TimetableTeachersService teachersService;
 
     public TimetableController(
             TimetableDraftService draftService,
-            TimetableCheckService checkService
+            TimetableCheckService checkService,
+            TimetableTeachersService teachersService
     ) {
         this.draftService = draftService;
         this.checkService = checkService;
+        this.teachersService = teachersService;
     }
 
     @GetMapping
@@ -70,6 +73,24 @@ public class TimetableController {
     @PostMapping("/{id}/check")
     public TimetableCheckResponse check(@PathVariable UUID id) {
         return checkService.check(id);
+    }
+
+    @GetMapping("/{id}/teachers")
+    public TimetableTeachersResponse getTeachers(@PathVariable UUID id) {
+        return teachersService.getTeachers(id);
+    }
+
+    @PostMapping("/{id}/teachers/suggest")
+    public TimetableTeachersResponse suggestTeachers(@PathVariable UUID id) {
+        return teachersService.suggestEmpty(id);
+    }
+
+    @PutMapping("/{id}/teachers")
+    public TimetableTeachersResponse updateTeacherChoice(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateTeacherChoiceRequest request
+    ) {
+        return teachersService.updateChoice(id, request);
     }
 
     @DeleteMapping("/{id}")
