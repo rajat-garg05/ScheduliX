@@ -15,6 +15,8 @@ public interface SubstituteRepository extends JpaRepository<Substitute, UUID> {
 
     List<Substitute> findByOnDateBetween(LocalDate fromDate, LocalDate toDate);
 
+    List<Substitute> findByOnDateGreaterThanEqualOrderByOnDateAsc(LocalDate fromDate);
+
     Optional<Substitute> findByLectureIdAndOnDate(UUID lectureId, LocalDate onDate);
 
     boolean existsBySubstituteTeacherId(UUID teacherId);
