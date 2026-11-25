@@ -8,6 +8,7 @@
 - Prompt 5, Milestone 1: Created pure Java `com.schedulix.engine` contract records, `TimeGrid`, and `TimeGridTest`.
 - Prompt 5, Milestone 2: Built `EngineChecks.check(EngineInput)` + `EngineChecksTest`.
 - Prompt 5, Milestone 3: Built `Suggestion` record and `TeacherSuggester.suggest(EngineInput)` + `TeacherSuggesterTest`.
+- Prompt 5, Milestone 4: Built backtracking search (`TimetableEngine.make`) with hardest-first ordering, forward checking, gap scoring, deterministic `variation` tie-breaking, paired labs, shared places, busy cells, fixed lectures, and `TimetableEngineTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes (`DefaultUsageChecker` and `DefaultSavedTimetableLookup` use plain `@Component`). When Prompt 6/8 provides real implementations of `UsageChecker` and `SavedTimetableLookup`, replace the default class or mark the real bean `@Primary`.
@@ -28,7 +29,7 @@
 
 ## Engine contract (`com.schedulix.engine`)
 - Records: `EngineSettings`, `EngineClass`, `EngineSubject`, `PlanLine`, `EngineTeacher`, `TeacherChoice`, `FixedLecture`, `BusyCell`, `EngineInput`, `PlacedLecture`, `EngineResult`, `Suggestion`
-- Helpers: `TimeGrid`, `EngineChecks.check(EngineInput)`, `TeacherSuggester.suggest(EngineInput)`
+- Helpers: `TimeGrid`, `EngineChecks.check(EngineInput)`, `TeacherSuggester.suggest(EngineInput)`, `TimetableEngine.make(EngineInput, int)`
 
 ## Database migrations
 - `V1__baseline.sql`
@@ -43,4 +44,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 5, Milestone 4: Backtracking search (`TimetableEngine.make`) with pieces, fixed lectures, run-together groups, shared places, busy cells, and per-day limits + unit tests.
+- Prompt 5, Milestone 5: `EngineChecks.verify(EngineInput, List<PlacedLecture>)` + brute-force comparison test on small random problems.
