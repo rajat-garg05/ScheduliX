@@ -13,6 +13,8 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import NotificationsPage from './pages/NotificationsPage';
 import HistoryPage from './pages/HistoryPage';
+import TeachersPage from './pages/TeachersPage';
+import SubjectsPage from './pages/SubjectsPage';
 import DashboardPage from './pages/DashboardPage';
 import ComingSoonPage from './pages/ComingSoonPage';
 
@@ -53,8 +55,8 @@ export default function App() {
                 <Route path="/history" element={<HistoryPage />} />
 
                 {/* HOD sections */}
-                <Route path="/setup/teachers" element={<ComingSoonPage title="Teachers" />} />
-                <Route path="/setup/subjects" element={<ComingSoonPage title="Subjects" />} />
+                <Route path="/setup/teachers" element={<TeachersPage />} />
+                <Route path="/setup/subjects" element={<SubjectsPage />} />
                 <Route path="/setup/teacher-subjects" element={<ComingSoonPage title="Who can teach what" />} />
                 <Route path="/setup/semester-plans" element={<ComingSoonPage title="Semester plans" />} />
                 <Route path="/timetables" element={<ComingSoonPage title="Classes and Timetables" />} />
