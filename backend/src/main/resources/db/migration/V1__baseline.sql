@@ -1,0 +1,2 @@
+-- Baseline migration for ScheduliX.
+-- Tables are introduced starting in V2.
