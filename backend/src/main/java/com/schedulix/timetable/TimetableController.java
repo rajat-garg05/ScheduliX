@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,6 +44,14 @@ public class TimetableController {
     @GetMapping("/{id}")
     public TimetableDraftResponse getDraft(@PathVariable UUID id) {
         return draftService.getDraft(id);
+    }
+
+    @PutMapping("/{id}/settings")
+    public TimetableSettingsResponse updateSettings(
+            @PathVariable UUID id,
+            @RequestBody TimetableSettings request
+    ) {
+        return draftService.updateSettings(id, request);
     }
 
     @DeleteMapping("/{id}")

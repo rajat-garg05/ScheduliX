@@ -38,6 +38,7 @@ public class TimetableDraftService {
     private final SectionRepository sectionRepository;
     private final SectionSubjectRepository sectionSubjectRepository;
     private final SavedTimetableLookup savedTimetableLookup;
+    private final TimetableSettingsSupport settingsSupport;
     private final CurrentUser currentUser;
     private final HistoryService historyService;
 
@@ -51,6 +52,7 @@ public class TimetableDraftService {
             SectionRepository sectionRepository,
             SectionSubjectRepository sectionSubjectRepository,
             SavedTimetableLookup savedTimetableLookup,
+            TimetableSettingsSupport settingsSupport,
             CurrentUser currentUser,
             HistoryService historyService
     ) {
@@ -63,6 +65,7 @@ public class TimetableDraftService {
         this.sectionRepository = sectionRepository;
         this.sectionSubjectRepository = sectionSubjectRepository;
         this.savedTimetableLookup = savedTimetableLookup;
+        this.settingsSupport = settingsSupport;
         this.currentUser = currentUser;
         this.historyService = historyService;
     }
@@ -139,15 +142,24 @@ public class TimetableDraftService {
     }
 
     @Transactional
-    public void deleteDraft(UUID timetableId) {
-        Timetable tt = loadOwnedTimetable(timetableId, currentUser.departmentId());
-        if (tt.getStatus() != TimetableStatus.DRAFT) {
-            throw new AppException(
-                    HttpStatus.CONFLICT,
-                    "TIMETABLE_ALREADY_SAVED",
-                    "This timetable is already saved and cannot be deleted as a draft."
-            );
+    public TimetableSettingsResponse updateSettings(UUID timetableId, TimetableSettings request) {
+        Timetable tt = loadOwnedDraft(timetableId, currentUser.departmentId());
+        TimetableSettings normalized = settingsSupport.validateAndNormalize(request);
+        String nextJson = settingsSupport.toJson(normalized);
+
+        if (!nextJson.equals(tt.getSettings())) {
+            tt.setSettings(nextJson);
+            // Changing time settings invalidates previously pinned fixed lectures and generated lectures.
+            fixedLectureRepository.deleteByTimetableId(tt.getId());
+            lectureRepository.deleteByTimetableId(tt.getId());
         }
+
+        return new TimetableSettingsResponse(normalized, settingsSupport.buildDayPreview(normalized));
+    }
+
+    @Transactional
+    public void deleteDraft(UUID timetableId) {
+        Timetable tt = loadOwnedDraft(timetableId, currentUser.departmentId());
         String name = tt.getName();
         timetableRepository.delete(tt);
         historyService.record("TIMETABLE", "Deleted unfinished timetable draft: " + name + ".");
@@ -207,6 +219,18 @@ public class TimetableDraftService {
     Timetable loadOwnedTimetable(UUID timetableId, UUID deptId) {
         return timetableRepository.findByIdAndDepartmentId(timetableId, deptId)
                 .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "TIMETABLE_NOT_FOUND", "Timetable not found."));
+    }
+
+    Timetable loadOwnedDraft(UUID timetableId, UUID deptId) {
+        Timetable tt = loadOwnedTimetable(timetableId, deptId);
+        if (tt.getStatus() != TimetableStatus.DRAFT) {
+            throw new AppException(
+                    HttpStatus.CONFLICT,
+                    "TIMETABLE_ALREADY_SAVED",
+                    "This timetable is already saved and cannot be changed."
+            );
+        }
+        return tt;
     }
 
     private List<Section> loadSectionsForTimetable(UUID timetableId, UUID semesterId) {
