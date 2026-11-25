@@ -13,10 +13,18 @@ import java.util.Set;
 
 public final class TimetableEngine {
 
+    private static final long DEFAULT_TIME_LIMIT_MILLIS = 45_000L;
+    private static final int MAX_RESTARTS = 8;
+    private static final long BASE_NODE_LIMIT = 40_000L;
+
     private TimetableEngine() {
     }
 
     public static EngineResult make(EngineInput in, int variation) {
+        return make(in, variation, DEFAULT_TIME_LIMIT_MILLIS);
+    }
+
+    static EngineResult make(EngineInput in, int variation, long timeLimitMillis) {
         List<String> preCheckProblems = EngineChecks.check(in);
         if (!preCheckProblems.isEmpty()) {
             return new EngineResult(false, List.of(), preCheckProblems);
@@ -25,22 +33,41 @@ public final class TimetableEngine {
             return new EngineResult(true, List.of(), List.of());
         }
 
-        SearchContext ctx = SearchContext.build(in, variation);
-        if (!ctx.placeFixedPieces()) {
-            return new EngineResult(false, List.of(), List.of(ctx.buildFailureMessage()));
+        long deadlineNanos = System.nanoTime() + Math.max(1L, timeLimitMillis) * 1_000_000L;
+        SearchContext lastContext = null;
+
+        for (int attempt = 0; attempt < MAX_RESTARTS; attempt++) {
+            long nodeLimit = BASE_NODE_LIMIT * (1L << Math.min(attempt, 4));
+            SearchContext ctx = SearchContext.build(in, variation, attempt, nodeLimit, deadlineNanos);
+            lastContext = ctx;
+
+            if (!ctx.placeFixedPieces()) {
+                return new EngineResult(false, List.of(), List.of(ctx.buildFailureMessage()));
+            }
+
+            if (ctx.solve()) {
+                List<PlacedLecture> placed = ctx.toPlacedLectures();
+                List<String> verifyProblems = EngineChecks.verify(in, placed);
+                if (!verifyProblems.isEmpty()) {
+                    return new EngineResult(false, List.of(), verifyProblems);
+                }
+                return new EngineResult(true, placed, List.of());
+            }
+
+            if (ctx.timedOut) {
+                return new EngineResult(false, List.of(), List.of(ctx.buildTimeoutMessage()));
+            }
+
+            // Exhaustive failure without hitting the node cap means no solution exists.
+            if (!ctx.nodeLimitReached) {
+                return new EngineResult(false, List.of(), List.of(ctx.buildFailureMessage()));
+            }
         }
 
-        boolean solved = ctx.solve();
-        if (!solved) {
-            return new EngineResult(false, List.of(), List.of(ctx.buildFailureMessage()));
-        }
-
-        List<PlacedLecture> placed = ctx.toPlacedLectures();
-        List<String> verifyProblems = EngineChecks.verify(in, placed);
-        if (!verifyProblems.isEmpty()) {
-            return new EngineResult(false, List.of(), verifyProblems);
-        }
-        return new EngineResult(true, placed, List.of());
+        String msg = lastContext != null
+                ? lastContext.buildTimeoutMessage()
+                : "Could not find a valid timetable in time. Try removing a fixed lecture or relaxing the daily limit.";
+        return new EngineResult(false, List.of(), List.of(msg));
     }
 
     private record PieceMember(
@@ -124,6 +151,9 @@ public final class TimetableEngine {
         final int lecturesPerDay;
         final int maxTeacherPerDay;
         final int variation;
+        final int attempt;
+        final long nodeLimit;
+        final long deadlineNanos;
 
         final List<Piece> pieces;
         final boolean[][][] classBusy;     // [classIdx][day][lecture (1..N)]
@@ -134,12 +164,18 @@ public final class TimetableEngine {
 
         final int[] failCounts;
         int unplacedCount;
+        long nodesVisited;
+        boolean nodeLimitReached;
+        boolean timedOut;
 
         private SearchContext(
                 int days,
                 int lecturesPerDay,
                 int maxTeacherPerDay,
                 int variation,
+                int attempt,
+                long nodeLimit,
+                long deadlineNanos,
                 List<Piece> pieces,
                 boolean[][][] classBusy,
                 boolean[][][] teacherBusy,
@@ -151,6 +187,9 @@ public final class TimetableEngine {
             this.lecturesPerDay = lecturesPerDay;
             this.maxTeacherPerDay = maxTeacherPerDay;
             this.variation = variation;
+            this.attempt = attempt;
+            this.nodeLimit = nodeLimit;
+            this.deadlineNanos = deadlineNanos;
             this.pieces = pieces;
             this.classBusy = classBusy;
             this.teacherBusy = teacherBusy;
@@ -161,7 +200,7 @@ public final class TimetableEngine {
             this.unplacedCount = pieces.size();
         }
 
-        static SearchContext build(EngineInput in, int variation) {
+        static SearchContext build(EngineInput in, int variation, int attempt, long nodeLimit, long deadlineNanos) {
             EngineSettings settings = in.settings();
             TimeGrid grid = TimeGrid.from(settings);
             int days = grid.workingDays();
@@ -201,7 +240,6 @@ public final class TimetableEngine {
                 choiceByPair.put(pairKey(c.classId(), c.subjectId()), c.teacherId());
             }
 
-            // Group plan lines into non-grouped subjects and paired-lab groups per class
             Map<String, List<PlanLine>> groupedPlan = new LinkedHashMap<>();
             List<PlanLine> singlePlans = new ArrayList<>();
 
@@ -301,7 +339,6 @@ public final class TimetableEngine {
                 }
             }
 
-            // Attach fixed lectures to available pieces (deduplicated per piece group + slot)
             Set<String> seenFixedSlots = new HashSet<>();
             for (FixedLecture fl : in.fixed()) {
                 EngineSubject sub = subjectById.get(fl.subjectId());
@@ -326,14 +363,12 @@ public final class TimetableEngine {
                 }
             }
 
-            // Build conflict neighbor lists for fast forward checking
             for (int i = 0; i < pieces.size(); i++) {
                 Piece a = pieces.get(i);
                 List<Integer> neighbors = new ArrayList<>();
                 for (int j = 0; j < pieces.size(); j++) {
                     if (i == j) continue;
-                    Piece b = pieces.get(j);
-                    if (sharesResource(a, b)) {
+                    if (sharesResource(a, pieces.get(j))) {
                         neighbors.add(j);
                     }
                 }
@@ -369,6 +404,9 @@ public final class TimetableEngine {
                     perDay,
                     settings.maxPerTeacherPerDay(),
                     variation,
+                    attempt,
+                    nodeLimit,
+                    deadlineNanos,
                     pieces,
                     classBusy,
                     teacherBusy,
@@ -410,6 +448,16 @@ public final class TimetableEngine {
                 return true;
             }
 
+            nodesVisited++;
+            if (nodesVisited >= nodeLimit) {
+                nodeLimitReached = true;
+                return false;
+            }
+            if ((nodesVisited & 1023L) == 0L && System.nanoTime() >= deadlineNanos) {
+                timedOut = true;
+                return false;
+            }
+
             Piece next = pickHardestPiece();
             if (next == null) {
                 return false;
@@ -427,6 +475,9 @@ public final class TimetableEngine {
                     return true;
                 }
                 unplace(next);
+                if (nodeLimitReached || timedOut) {
+                    return false;
+                }
             }
 
             failCounts[next.id]++;
@@ -459,7 +510,7 @@ public final class TimetableEngine {
             if (a.length != b.length) return a.length > b.length;
             if (a.grouped != b.grouped) return a.grouped;
             if (a.usesSharedPlace != b.usesSharedPlace) return a.usesSharedPlace;
-            return a.id < b.id;
+            return mixHash(variation, attempt, a.id, 0, 0) < mixHash(variation, attempt, b.id, 0, 0);
         }
 
         private int countValidSlots(Piece piece, int stopAt) {
@@ -510,7 +561,7 @@ public final class TimetableEngine {
                         continue;
                     }
                     int gapScore = computeClassDayGapScore(piece.classIdx, d, start, piece.length);
-                    long hash = mixHash(variation, piece.id, d, start);
+                    long hash = mixHash(variation, attempt, piece.id, d, start);
                     slots.add(new SlotCandidate(d, start, sameSubCount, gapScore, hash));
                 }
             }
@@ -615,7 +666,7 @@ public final class TimetableEngine {
             unplacedCount++;
         }
 
-        private String buildFailureMessage() {
+        private Piece bottleneckPiece() {
             Piece bottleneck = pieces.get(0);
             int maxFails = -1;
             for (Piece p : pieces) {
@@ -624,9 +675,18 @@ public final class TimetableEngine {
                     bottleneck = p;
                 }
             }
-            return "Could not find a valid slot for " + bottleneck.label
+            return bottleneck;
+        }
+
+        private String buildFailureMessage() {
+            return "Could not find a valid slot for " + bottleneckPiece().label
                     + " without clashing with another class, teacher, or shared lab. "
                     + "Try removing a fixed lecture, raising the daily teacher limit, or choosing a different teacher.";
+        }
+
+        private String buildTimeoutMessage() {
+            return "Could not finish placing " + bottleneckPiece().label
+                    + " within the time limit. Try removing a fixed lecture, raising the daily teacher limit, or splitting teachers across fewer classes.";
         }
 
         List<PlacedLecture> toPlacedLectures() {
@@ -653,9 +713,10 @@ public final class TimetableEngine {
         }
     }
 
-    private static long mixHash(int variation, int pieceId, int day, int start) {
+    private static long mixHash(int variation, int attempt, int pieceId, int day, int start) {
         long h = 0x9E3779B97F4A7C15L;
         h ^= (variation + 1L) * 0xBF58476D1CE4E5B9L;
+        h = Long.rotateLeft(h, 19) ^ ((attempt + 1L) * 0x517CC1B727220A95L);
         h = Long.rotateLeft(h, 27) ^ (pieceId * 0x94D049BB133111EBL);
         h = Long.rotateLeft(h, 31) ^ ((day * 31L + start) * 0xD6E8FEB86659FD93L);
         h ^= (h >>> 30);
