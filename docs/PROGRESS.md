@@ -1,35 +1,25 @@
 # ScheduliX Progress
 
 ## Completed
-- Prompt 1 (All 6 milestones): Project start and public Home page.
-  - Milestone 1: Initialized `schedulix` repo, base folders (`backend/`, `frontend/`, `docs/`, `scripts/`), `.gitignore`, `README.md`.
-  - Milestone 2: Spring Boot 4.1.1 backend skeleton (`SchedulixApplication`, `HealthController`, `ApiError`, `AppException`, `GlobalExceptionHandler`, `application.yml` with `dev`/`prod` profiles, `HealthControllerTest`).
-  - Milestone 3: Docker Compose PostgreSQL 16 (`docker-compose.yml`, `.env.example`), JPA + Flyway (`V1__baseline.sql`), and Testcontainers integration test (`HealthIntegrationTest`).
-  - Milestone 4: React + Vite (JavaScript) frontend with Tailwind CSS v4, React Router, TanStack Query, Axios `/api` client + Vite proxy, role-based `AppShell` (`MENU_BY_ROLE`), `ProtectedRoute` placeholder + unit tests, `LoginPage` placeholder, `DashboardPage`, and `ComingSoonPage`.
-  - Milestone 5: Public `HomePage` and `SampleTimetable` component (static fake data labelled "Sample"), plus `HomePage.test.jsx`.
-  - Milestone 6: PowerShell scripts (`scripts/start.ps1`, `scripts/test.ps1`), complete `README.md`, and final Prompt 1 check.
+- Prompt 1 (All 6 milestones): Project start, Spring Boot 4.1.1 backend skeleton, Docker Compose PostgreSQL 16 + Flyway `V1__baseline.sql`, React + Vite (JavaScript) frontend skeleton, role-based `AppShell`, public `HomePage` + `SampleTimetable`, PowerShell scripts.
+- Prompt 2, Milestone 1: Added Flyway migration `V2__accounts_notifications_history.sql`, JPA entities, repositories, and `AccountsSchemaTest`.
+- Prompt 2, Milestone 2: Built registration, email verification, resend confirmation, `EmailSender`, `TokenHelper`, `RateLimiter`, and `RegistrationIntegrationTest`.
+- Prompt 2, Milestone 3: Built login (`POST /api/auth/login`), refresh-token cookie rotation (`POST /api/auth/refresh`), logout (`POST /api/auth/logout`), `GET /api/me`, `JwtService`, `JwtAuthenticationFilter`, `CurrentUser`, `AuthPrincipal`, `LoginAttemptTracker` (5 tries / 15-min lockout), `must_change_password` guard, method security (`@EnableMethodSecurity`), and `LoginSessionIntegrationTest`.
 
 ## Key files and classes
-- Backend (`com.schedulix`):
-  - `SchedulixApplication`
-  - `common.HealthController` (`GET /api/health`)
-  - `common.ApiError`, `common.AppException`, `common.GlobalExceptionHandler`
-  - `backend/src/main/resources/application.yml` (`dev` default, `prod` profile, `APP_TIMEZONE` default `Asia/Kolkata`)
-  - `backend/src/main/resources/db/migration/V1__baseline.sql` (next migration: `V2__...sql`)
-- Frontend (`frontend/src/`):
-  - `api/client.js` (Axios baseURL `/api`, `withCredentials: true`)
-  - `features/auth/authContext.jsx` (placeholder auth — to be replaced with real JWT login in Prompt 2)
-  - `routes/ProtectedRoute.jsx` (redirects guests to `/login?next=...`)
-  - `components/menuItems.js` (`MENU_BY_ROLE`), `components/AppShell.jsx`, `components/SampleTimetable.jsx`
-  - `pages/HomePage.jsx`, `pages/LoginPage.jsx`, `pages/DashboardPage.jsx`, `pages/ComingSoonPage.jsx`
-- Scripts & infra:
-  - `docker-compose.yml`, `.env.example`, `scripts/start.ps1`, `scripts/test.ps1`
+- Migrations:
+  - `V1__baseline.sql`
+  - `V2__accounts_notifications_history.sql` (next migration: `V3__...sql`)
+- `com.schedulix.auth`:
+  - Shared helpers: `CurrentUser` (`userId()`, `departmentId()`, `role()`, `displayName()`, `mustChangePassword()`), `EmailSender` (`SmtpEmailSender`, `ConsoleEmailSender`), `JwtService`, `TokenHelper`, `RateLimiter`, `LoginAttemptTracker`
+  - Security: `SecurityConfig`, `JwtAuthenticationFilter`, `AuthPrincipal`
+  - Services & controllers: `RegistrationService`, `SessionService`, `AuthController`, `MeController`
+- `com.schedulix.notice`: `Notification`, `NotificationRepository`
+- `com.schedulix.history`: `HistoryEntry`, `HistoryEntryRepository`
 
 ## How to run
 - Start everything: `.\scripts\start.ps1`
 - Run all tests: `.\scripts\test.ps1`
-- Frontend: `http://localhost:5173`
-- Backend health: `http://localhost:8080/api/health`
 
 ## Open items
-- Ready for Prompt 2: Accounts, Notifications, and History (will replace placeholder auth and add `V2` migration).
+- Prompt 2, Milestone 4: Forgot password, reset password, change password, and tests.
