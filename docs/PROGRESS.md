@@ -7,10 +7,8 @@
 - Prompt 4 (All 6 milestones): Semesters, Sections, and Semester Plans (`V4__semesters_sections_plans.sql`, `SavedTimetableLookup`, `PlanValidator`, CSV multi-section import, manual plan editing, `SemesterPlansPage`).
 - Prompt 5 (All 6 milestones): Pure Java Timetable Engine (`com.schedulix.engine`).
 - Prompt 6 (All 9 milestones): Make Timetable, Steps 1 to 5.
-- Prompt 7, Milestone 1: `TimetableMakeService` and `POST /api/timetables/{id}/make` + `TimetableMakeIntegrationTest`.
-- Prompt 7, Milestone 2: `PUT .../keep`, `POST .../keep-all`, `POST .../make-again` + `TimetableKeepAndMakeAgainIntegrationTest`.
-- Prompt 7, Milestone 3: `TimetableLifecycleService`, `POST .../save`, `GET .../delete-preview`, unified `DELETE /{id}` + `TimetableSaveAndDeleteIntegrationTest`.
-- Prompt 7, Milestone 4: `TimetableTreeResponse`, `TimetableViewService`, `TimetableViewController`, `GET /api/timetables/{id}/view`, `GET /api/tree`, `GET /api/timetables/saved`, `GET /api/sections/{id}/timetable`, and `TimetableViewAndTreeIntegrationTest`.
+- Prompt 7, Milestones 1–4: Backend `POST /make`, `POST /make-again`, `PUT .../keep`, `POST /keep-all`, `POST /save`, `GET /delete-preview`, unified `DELETE /{id}`, `GET /{id}/view`, `GET /api/tree`, `GET /api/timetables/saved`, and `GET /api/sections/{id}/timetable`.
+- Prompt 7, Milestone 5: Built reusable `TimetableGrid.jsx`, `Step6Result.jsx` (Make progress, class tabs, Teachers tab, plain error panel with jump-back buttons), and wired **Make Timetable** in `MakeTimetablePage.jsx`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -31,6 +29,5 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 7, Milestone 5: React — Make button, progress state, result class grids, Teachers tab, and plain error panel.
 - Prompt 7, Milestone 6: React — Keep this lecture, Keep all, Make again, and Save timetable.
 - Prompt 7, Milestone 7: React — Classes and Timetables tree page with View and Delete (with preview dialog).

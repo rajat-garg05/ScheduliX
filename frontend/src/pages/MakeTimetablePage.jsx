@@ -17,6 +17,7 @@ import Step2Settings from '../features/timetable/Step2Settings';
 import Step3Check from '../features/timetable/Step3Check';
 import Step4Teachers from '../features/timetable/Step4Teachers';
 import Step5FixedLectures from '../features/timetable/Step5FixedLectures';
+import Step6Result from '../features/timetable/Step6Result';
 
 const STEPS = [
   { number: 1, label: 'Classes' },
@@ -24,6 +25,7 @@ const STEPS = [
   { number: 3, label: 'Check' },
   { number: 4, label: 'Teachers' },
   { number: 5, label: 'Fixed lectures' },
+  { number: 6, label: 'Result' },
 ];
 
 export default function MakeTimetablePage() {
@@ -34,6 +36,7 @@ export default function MakeTimetablePage() {
   const [activeDraft, setActiveDraft] = useState(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [step, setStep] = useState(1);
+  const [autoMakeResult, setAutoMakeResult] = useState(false);
   const [loadingDraftId, setLoadingDraftId] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [pageError, setPageError] = useState('');
@@ -72,6 +75,7 @@ export default function MakeTimetablePage() {
   function startNewWizard() {
     setActiveDraft(null);
     setStep(1);
+    setAutoMakeResult(false);
     setWizardOpen(true);
     setPageError('');
   }
@@ -82,7 +86,8 @@ export default function MakeTimetablePage() {
     try {
       const res = await api.get(`/timetables/${draftId}`);
       setActiveDraft(res.data);
-      setStep(2);
+      setAutoMakeResult(false);
+      setStep((res.data?.lectureCount || 0) > 0 ? 6 : 2);
       setWizardOpen(true);
     } catch (err) {
       setPageError(getErrorMessage(err, 'Could not open this draft.'));
@@ -95,6 +100,7 @@ export default function MakeTimetablePage() {
     setWizardOpen(false);
     setActiveDraft(null);
     setStep(1);
+    setAutoMakeResult(false);
     queryClient.invalidateQueries({ queryKey: ['timetable-drafts'] });
   }
 
@@ -126,7 +132,7 @@ export default function MakeTimetablePage() {
         </div>
 
         {/* Step progress bar */}
-        <ol className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <ol className="grid grid-cols-2 sm:grid-cols-6 gap-2">
           {STEPS.map((item) => {
             const done = item.number < step;
             const current = item.number === step;
@@ -210,6 +216,21 @@ export default function MakeTimetablePage() {
             <Step5FixedLectures
               draft={activeDraft}
               onBack={() => setStep(4)}
+              onMakeTimetable={() => {
+                setAutoMakeResult(true);
+                setStep(6);
+              }}
+            />
+          )}
+
+          {step === 6 && activeDraft && (
+            <Step6Result
+              draft={activeDraft}
+              autoMake={autoMakeResult}
+              onBackToStep={(targetStep) => {
+                setAutoMakeResult(false);
+                setStep(targetStep);
+              }}
             />
           )}
         </div>
