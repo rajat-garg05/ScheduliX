@@ -26,17 +26,20 @@ public class TimetableController {
     private final TimetableCheckService checkService;
     private final TimetableTeachersService teachersService;
     private final FixedLectureService fixedLectureService;
+    private final TimetableMakeService makeService;
 
     public TimetableController(
             TimetableDraftService draftService,
             TimetableCheckService checkService,
             TimetableTeachersService teachersService,
-            FixedLectureService fixedLectureService
+            FixedLectureService fixedLectureService,
+            TimetableMakeService makeService
     ) {
         this.draftService = draftService;
         this.checkService = checkService;
         this.teachersService = teachersService;
         this.fixedLectureService = fixedLectureService;
+        this.makeService = makeService;
     }
 
     @GetMapping
@@ -117,6 +120,11 @@ public class TimetableController {
             @PathVariable UUID fixedId
     ) {
         fixedLectureService.delete(id, fixedId);
+    }
+
+    @PostMapping("/{id}/make")
+    public TimetableMakeResponse make(@PathVariable UUID id) {
+        return makeService.make(id);
     }
 
     @DeleteMapping("/{id}")
