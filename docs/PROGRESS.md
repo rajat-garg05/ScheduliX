@@ -6,34 +6,13 @@
 - Prompt 3 (All 7 milestones): Teachers, Subjects, and Who Can Teach What (`V3__teachers_subjects_who_can_teach.sql`, `UsageChecker`, `SubjectGroupValidator`, `CsvImportSupport`, CRUD + CSV import + React screens).
 - Prompt 4 (All 6 milestones): Semesters, Sections, and Semester Plans (`V4__semesters_sections_plans.sql`, `SavedTimetableLookup`, `PlanValidator`, CSV multi-section import, manual plan editing, `SemesterPlansPage`).
 - Prompt 5 (All 6 milestones): Pure Java Timetable Engine (`com.schedulix.engine`).
-- Prompt 6, Milestone 1: Added `V5__timetables.sql`, JPA entities & repositories, `@Primary` `TimetableSavedLookup` & `TimetableUsageChecker`, draft CRUD (`TimetableDraftService`, `TimetableController`), and `TimetableDraftIntegrationTest`.
-- Prompt 6, Milestone 2: Built `TimetableSettings`, `DayPreviewSlot`, `TimetableSettingsResponse`, `TimetableSettingsSupport`, `PUT /api/timetables/{id}/settings`, and `TimetableSettingsSupportTest`.
-- Prompt 6, Milestone 3: Added `UpdateClassesRequest`, `PUT /api/timetables/{id}/classes`, and `TimetableClassesIntegrationTest`.
-- Prompt 6, Milestone 4: Built `BusyCellService` and `EngineInputBuilder` + `BusyCellServiceTest`.
-- Prompt 6, Milestone 5: Built `TimetableCheckService`, `POST /api/timetables/{id}/check`, and `TimetableCheckIntegrationTest`.
-- Prompt 6, Milestone 6: Built `TimetableTeachersService`, `GET/PUT /api/timetables/{id}/teachers`, `POST /api/timetables/{id}/teachers/suggest`, and `TimetableTeachersIntegrationTest`.
-- Prompt 6, Milestone 7: Built `FixedLectureService`, `AddFixedLectureRequest`, `FixedLectureResponse`, `GET/POST/DELETE /api/timetables/{id}/fixed-lectures`, and `FixedLecturesIntegrationTest`.
+- Prompt 6, Milestones 1–7: Backend `V5__timetables.sql`, entities & repositories, `@Primary` `TimetableSavedLookup` & `TimetableUsageChecker`, draft CRUD, settings + day preview, classes update, `BusyCellService`, `EngineInputBuilder`, `/check`, `/teachers` + `/suggest`, and `/fixed-lectures`.
+- Prompt 6, Milestone 8: Built React `MakeTimetablePage` (Unfinished timetables list + 5-step progress bar), `Step1Classes`, `Step2Settings` (working day chips, breaks editor, live day preview), `Step3Check`, and wired `/make-timetable` in `App.jsx`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
 - Request DTO for linking teacher subjects in `com.schedulix.setup` is `TeacherSubjectsRequest`.
 - `com.schedulix.engine` is strictly plain Java (no Spring, no JPA, no JSON libraries).
-
-## Shared backend helpers (use these exact names in later prompts)
-- `com.schedulix.auth.CurrentUser`
-- `com.schedulix.history.HistoryService` (`record(String kind, String sentence)`)
-- `com.schedulix.notice.NotificationService` (`send(UUID userId, String text, String link)`)
-- `com.schedulix.auth.AccountService`
-- `com.schedulix.auth.EmailSender`
-- `com.schedulix.setup.UsageChecker` (backed by `@Primary TimetableUsageChecker`)
-- `com.schedulix.setup.SavedTimetableLookup` (backed by `@Primary TimetableSavedLookup`)
-- `com.schedulix.setup.SubjectGroupValidator`
-- `com.schedulix.setup.PlanValidator`
-- `com.schedulix.timetable.TimetableSettingsSupport`
-- `com.schedulix.timetable.BusyCellService`
-- `com.schedulix.timetable.EngineInputBuilder`
-- `com.schedulix.common.CsvImportSupport`
-- `com.schedulix.common.PageResponse<T>`
 
 ## Database migrations
 - `V1__baseline.sql`
@@ -49,5 +28,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 6, Milestone 8: React **Make Timetable** page — Unfinished timetables list and wizard Steps 1 to 3.
-- Prompt 6, Milestone 9: React wizard Steps 4 and 5 + final Prompt 6 `docs/PROGRESS.md` update.
+- Prompt 6, Milestone 9: React wizard Steps 4 (`Step4Teachers`) and 5 (`Step5FixedLectures`) + final Prompt 6 `docs/PROGRESS.md` update.
