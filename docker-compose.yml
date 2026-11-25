@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: schedulix-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-schedulix}
+      POSTGRES_USER: ${DB_USER:-schedulix}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-schedulix}
+    ports:
+      - "${DB_PORT:-5434}:5432"
+    volumes:
+      - schedulix_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-schedulix} -d ${DB_NAME:-schedulix}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  schedulix_pgdata:
