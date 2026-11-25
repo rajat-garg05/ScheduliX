@@ -35,6 +35,7 @@ public class LeaveService {
     private final LeaveLectureRepository leaveLectureRepository;
     private final SubstituteRepository substituteRepository;
     private final TeacherRepository teacherRepository;
+    private final SubstituteService substituteService;
     private final CurrentUser currentUser;
     private final NotificationService notificationService;
     private final HistoryService historyService;
@@ -45,6 +46,7 @@ public class LeaveService {
             LeaveLectureRepository leaveLectureRepository,
             SubstituteRepository substituteRepository,
             TeacherRepository teacherRepository,
+            SubstituteService substituteService,
             CurrentUser currentUser,
             NotificationService notificationService,
             HistoryService historyService,
@@ -54,6 +56,7 @@ public class LeaveService {
         this.leaveLectureRepository = leaveLectureRepository;
         this.substituteRepository = substituteRepository;
         this.teacherRepository = teacherRepository;
+        this.substituteService = substituteService;
         this.currentUser = currentUser;
         this.notificationService = notificationService;
         this.historyService = historyService;
@@ -158,6 +161,10 @@ public class LeaveService {
             }
         }
 
+        if (saved.getStatus() == LeaveStatus.ACCEPTED) {
+            substituteService.prepareForLeave(saved);
+        }
+
         String rangeText = formatDateRange(saved.getFromDate(), saved.getToDate());
         if (isHod) {
             historyService.record("LEAVE", "Added leave for " + teacher.getFullName() + " (" + rangeText + ").");
@@ -236,6 +243,8 @@ public class LeaveService {
         leave.setDecisionNote(note);
         leaveRepository.save(leave);
 
+        substituteService.prepareForLeave(leave);
+
         String rangeText = formatDateRange(leave.getFromDate(), leave.getToDate());
         historyService.record("LEAVE", "Accepted leave for " + teacher.getFullName() + " (" + rangeText + ").");
         if (teacher.getUserAccountId() != null) {
@@ -306,7 +315,6 @@ public class LeaveService {
             }
         }
 
-        // Notify any teachers who had accepted substitute arrangements for this leave
         Map<UUID, Teacher> teacherById = new HashMap<>();
         for (Teacher t : teacherRepository.findByDepartmentIdOrderByCodeAsc(deptId)) {
             teacherById.put(t.getId(), t);

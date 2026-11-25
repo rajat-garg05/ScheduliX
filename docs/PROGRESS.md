@@ -8,10 +8,12 @@
 - Prompt 5 (All 6 milestones): Pure Java Timetable Engine (`com.schedulix.engine`).
 - Prompt 6 (All 9 milestones): Make Timetable, Steps 1 to 5.
 - Prompt 7 (All 7 milestones): Make, Keep, Save, and the Classes and Timetables Tree.
-- Prompt 8, Milestone 1: Added `V6__leave_substitutes.sql` (`leave`, `leave_lecture`, `substitute`), JPA entities & repositories in `com.schedulix.leave`, `LeaveService` & `LeaveController` (`POST/GET /api/leaves`, `POST /{id}/accept`, `/reject`, `/cancel` with overlap guard, notifications, and History), and `LeaveIntegrationTest`.
+- Prompt 8, Milestone 1: `V6__leave_substitutes.sql`, `Leave`, `LeaveLecture`, `Substitute` entities & repositories, `LeaveService` & `LeaveController`, `LeaveIntegrationTest`.
+- Prompt 8, Milestone 2: `SubstituteService`, `SubstituteController`, `GET /api/teachers/{id}/lectures?date=`, `POST /api/substitutes/prepare?date=`, auto-prepare on leave accept, and `SubstituteProposalIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
+- `UserAccountRepository` queries by `findByEmail(String email)` (not `findByEmailIgnoreCase`).
 - Request DTO for linking teacher subjects in `com.schedulix.setup` is `TeacherSubjectsRequest`.
 - `com.schedulix.engine` is strictly plain Java (no Spring, no JPA, no JSON libraries).
 
@@ -30,4 +32,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 8, Milestone 2: Affected lectures (`GET /api/teachers/{id}/lectures?date=`) and substitute proposal (`POST /api/substitutes/prepare?date=`) + tests.
+- Prompt 8, Milestone 3: Manual substitute choice (`GET /api/substitutes/{id}/options`, `PUT /api/substitutes/{id}/teacher`), accepting (`POST /api/substitutes/{id}/accept`, `POST /api/substitutes/accept-all?date=`), notifications & History + tests.
