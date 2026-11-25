@@ -25,15 +25,18 @@ public class TimetableController {
     private final TimetableDraftService draftService;
     private final TimetableCheckService checkService;
     private final TimetableTeachersService teachersService;
+    private final FixedLectureService fixedLectureService;
 
     public TimetableController(
             TimetableDraftService draftService,
             TimetableCheckService checkService,
-            TimetableTeachersService teachersService
+            TimetableTeachersService teachersService,
+            FixedLectureService fixedLectureService
     ) {
         this.draftService = draftService;
         this.checkService = checkService;
         this.teachersService = teachersService;
+        this.fixedLectureService = fixedLectureService;
     }
 
     @GetMapping
@@ -91,6 +94,29 @@ public class TimetableController {
             @Valid @RequestBody UpdateTeacherChoiceRequest request
     ) {
         return teachersService.updateChoice(id, request);
+    }
+
+    @GetMapping("/{id}/fixed-lectures")
+    public List<FixedLectureResponse> listFixedLectures(@PathVariable UUID id) {
+        return fixedLectureService.list(id);
+    }
+
+    @PostMapping("/{id}/fixed-lectures")
+    @ResponseStatus(HttpStatus.CREATED)
+    public FixedLectureResponse addFixedLecture(
+            @PathVariable UUID id,
+            @Valid @RequestBody AddFixedLectureRequest request
+    ) {
+        return fixedLectureService.add(id, request);
+    }
+
+    @DeleteMapping("/{id}/fixed-lectures/{fixedId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFixedLecture(
+            @PathVariable UUID id,
+            @PathVariable UUID fixedId
+    ) {
+        fixedLectureService.delete(id, fixedId);
     }
 
     @DeleteMapping("/{id}")

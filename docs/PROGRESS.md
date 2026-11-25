@@ -11,7 +11,8 @@
 - Prompt 6, Milestone 3: Added `UpdateClassesRequest`, `PUT /api/timetables/{id}/classes`, and `TimetableClassesIntegrationTest`.
 - Prompt 6, Milestone 4: Built `BusyCellService` and `EngineInputBuilder` + `BusyCellServiceTest`.
 - Prompt 6, Milestone 5: Built `TimetableCheckService`, `POST /api/timetables/{id}/check`, and `TimetableCheckIntegrationTest`.
-- Prompt 6, Milestone 6: Built `TimetableTeachersService`, `TimetableTeachersResponse`, `UpdateTeacherChoiceRequest`, `GET/PUT /api/timetables/{id}/teachers`, `POST /api/timetables/{id}/teachers/suggest`, and `TimetableTeachersIntegrationTest`.
+- Prompt 6, Milestone 6: Built `TimetableTeachersService`, `GET/PUT /api/timetables/{id}/teachers`, `POST /api/timetables/{id}/teachers/suggest`, and `TimetableTeachersIntegrationTest`.
+- Prompt 6, Milestone 7: Built `FixedLectureService`, `AddFixedLectureRequest`, `FixedLectureResponse`, `GET/POST/DELETE /api/timetables/{id}/fixed-lectures`, and `FixedLecturesIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -48,4 +49,5 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 6, Milestone 7: Fixed lectures step (`GET/POST/DELETE /api/timetables/{id}/fixed-lectures`) with immediate clash, break, shared-place, and count checks + tests.
+- Prompt 6, Milestone 8: React **Make Timetable** page — Unfinished timetables list and wizard Steps 1 to 3.
+- Prompt 6, Milestone 9: React wizard Steps 4 and 5 + final Prompt 6 `docs/PROGRESS.md` update.
