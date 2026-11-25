@@ -1,8 +1,11 @@
 package com.schedulix.setup;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface TeacherSubjectRepository extends JpaRepository<TeacherSubject, TeacherSubjectId> {
@@ -16,4 +19,11 @@ public interface TeacherSubjectRepository extends JpaRepository<TeacherSubject, 
     void deleteBySubjectId(UUID subjectId);
 
     boolean existsByTeacherIdAndSubjectId(UUID teacherId, UUID subjectId);
+
+    @Query("""
+            SELECT DISTINCT ts.subjectId FROM TeacherSubject ts
+            JOIN Teacher t ON t.id = ts.teacherId
+            WHERE t.departmentId = :departmentId AND t.active = true
+            """)
+    Set<UUID> findSubjectIdsWithActiveTeacher(@Param("departmentId") UUID departmentId);
 }
