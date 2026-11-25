@@ -15,6 +15,8 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import Step1Classes from '../features/timetable/Step1Classes';
 import Step2Settings from '../features/timetable/Step2Settings';
 import Step3Check from '../features/timetable/Step3Check';
+import Step4Teachers from '../features/timetable/Step4Teachers';
+import Step5FixedLectures from '../features/timetable/Step5FixedLectures';
 
 const STEPS = [
   { number: 1, label: 'Classes' },
@@ -193,19 +195,22 @@ export default function MakeTimetablePage() {
             />
           )}
 
-          {step >= 4 && activeDraft && (
-            <div className="py-8 text-center space-y-3">
-              <p className="text-sm font-medium text-slate-900">
-                Steps 4 (Teachers) and 5 (Fixed lectures) are coming in the next milestone.
-              </p>
-              <button
-                type="button"
-                onClick={() => setStep(3)}
-                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-              >
-                Back to Step 3
-              </button>
-            </div>
+          {step === 4 && activeDraft && (
+            <Step4Teachers
+              draft={activeDraft}
+              onBack={() => setStep(3)}
+              onContinue={async () => {
+                await refreshDraft(activeDraft.id);
+                setStep(5);
+              }}
+            />
+          )}
+
+          {step === 5 && activeDraft && (
+            <Step5FixedLectures
+              draft={activeDraft}
+              onBack={() => setStep(4)}
+            />
           )}
         </div>
       </div>
