@@ -10,6 +10,7 @@
 - Prompt 7 (All 7 milestones): Make, Keep, Save, and the Classes and Timetables Tree.
 - Prompt 8, Milestone 1: `V6__leave_substitutes.sql`, `Leave`, `LeaveLecture`, `Substitute` entities & repositories, `LeaveService` & `LeaveController`, `LeaveIntegrationTest`.
 - Prompt 8, Milestone 2: `SubstituteService`, `SubstituteController`, `GET /api/teachers/{id}/lectures?date=`, `POST /api/substitutes/prepare?date=`, auto-prepare on leave accept, and `SubstituteProposalIntegrationTest`.
+- Prompt 8, Milestone 3: `GET /api/substitutes/{id}/options`, `PUT /api/substitutes/{id}/teacher` (with server re-check), `POST /api/substitutes/{id}/accept`, `POST /api/substitutes/accept-all?date=`, notifications & History, and `SubstituteAcceptIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -32,4 +33,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 8, Milestone 3: Manual substitute choice (`GET /api/substitutes/{id}/options`, `PUT /api/substitutes/{id}/teacher`), accepting (`POST /api/substitutes/{id}/accept`, `POST /api/substitutes/accept-all?date=`), notifications & History + tests.
+- Prompt 8, Milestone 4: `GET /api/today?date=` and `GET /api/my/timetable` + tests.

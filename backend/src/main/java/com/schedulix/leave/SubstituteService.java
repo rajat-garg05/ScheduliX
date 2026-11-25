@@ -2,6 +2,8 @@ package com.schedulix.leave;
 
 import com.schedulix.auth.CurrentUser;
 import com.schedulix.common.AppException;
+import com.schedulix.history.HistoryService;
+import com.schedulix.notice.NotificationService;
 import com.schedulix.setup.Section;
 import com.schedulix.setup.SectionRepository;
 import com.schedulix.setup.Semester;
@@ -36,6 +38,7 @@ import java.util.UUID;
 public class SubstituteService {
 
     private static final DateTimeFormatter HH_MM = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter DISPLAY_DATE = DateTimeFormatter.ofPattern("d MMM");
 
     private final LeaveRepository leaveRepository;
     private final LeaveLectureRepository leaveLectureRepository;
@@ -47,6 +50,8 @@ public class SubstituteService {
     private final SectionRepository sectionRepository;
     private final SemesterRepository semesterRepository;
     private final CurrentUser currentUser;
+    private final NotificationService notificationService;
+    private final HistoryService historyService;
 
     public SubstituteService(
             LeaveRepository leaveRepository,
@@ -58,7 +63,9 @@ public class SubstituteService {
             SubjectRepository subjectRepository,
             SectionRepository sectionRepository,
             SemesterRepository semesterRepository,
-            CurrentUser currentUser
+            CurrentUser currentUser,
+            NotificationService notificationService,
+            HistoryService historyService
     ) {
         this.leaveRepository = leaveRepository;
         this.leaveLectureRepository = leaveLectureRepository;
@@ -70,6 +77,8 @@ public class SubstituteService {
         this.sectionRepository = sectionRepository;
         this.semesterRepository = semesterRepository;
         this.currentUser = currentUser;
+        this.notificationService = notificationService;
+        this.historyService = historyService;
     }
 
     @Transactional(readOnly = true)
@@ -169,6 +178,312 @@ public class SubstituteService {
         }
 
         return new PrepareSubstitutesResponse(date, prepared, totalForDate, message);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SubstituteOptionResponse> getOptions(UUID substituteId) {
+        UUID deptId = currentUser.departmentId();
+        Substitute sub = loadOwnedSubstitute(substituteId, deptId);
+        Lecture target = lectureRepository.findById(sub.getLectureId())
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LECTURE_NOT_FOUND", "Lecture not found."));
+
+        List<Lecture> allSaved = lectureRepository.findSavedLecturesByDepartment(deptId);
+        Map<UUID, Lecture> savedById = new HashMap<>();
+        for (Lecture l : allSaved) {
+            savedById.put(l.getId(), l);
+        }
+
+        Set<UUID> teachersOnLeave = new HashSet<>();
+        for (Leave l : leaveRepository.findAcceptedOnDate(deptId, sub.getOnDate())) {
+            teachersOnLeave.add(l.getTeacherId());
+        }
+
+        List<Substitute> daySubs = substituteRepository.findByOnDate(sub.getOnDate());
+        List<Teacher> activeTeachers = teacherRepository.findByDepartmentIdOrderByCodeAsc(deptId).stream()
+                .filter(Teacher::isActive)
+                .toList();
+
+        List<SubstituteOptionResponse> options = new ArrayList<>();
+        DayOfWeek day = sub.getOnDate().getDayOfWeek();
+
+        for (Teacher t : activeTeachers) {
+            if (t.getId().equals(target.getTeacherId())) {
+                continue;
+            }
+            if (teachersOnLeave.contains(t.getId())) {
+                options.add(new SubstituteOptionResponse(
+                        t.getId(), t.getCode(), t.getFullName(),
+                        "ON_LEAVE", "On leave", false, false
+                ));
+                continue;
+            }
+            boolean busy = isBusyBySavedTimetable(t.getId(), day, target, allSaved)
+                    || isBusyBySubstitute(t.getId(), sub.getOnDate(), target, savedById, daySubs, sub.getId());
+            if (busy) {
+                options.add(new SubstituteOptionResponse(
+                        t.getId(), t.getCode(), t.getFullName(),
+                        "BUSY", "Busy at that time", false, false
+                ));
+                continue;
+            }
+            boolean able = teacherSubjectRepository.findByTeacherId(t.getId()).stream()
+                    .anyMatch(ts -> ts.getSubjectId().equals(target.getSubjectId()));
+            if (able) {
+                options.add(new SubstituteOptionResponse(
+                        t.getId(), t.getCode(), t.getFullName(),
+                        "FREE_ABLE", "Free and able", true, false
+                ));
+            } else {
+                options.add(new SubstituteOptionResponse(
+                        t.getId(), t.getCode(), t.getFullName(),
+                        "FREE_NOT_ABLE", "Free but not listed for this subject", true, true
+                ));
+            }
+        }
+
+        options.sort(Comparator
+                .comparingInt((SubstituteOptionResponse o) -> statusOrder(o.status()))
+                .thenComparing(SubstituteOptionResponse::teacherName, String.CASE_INSENSITIVE_ORDER));
+        return options;
+    }
+
+    @Transactional
+    public SubstituteArrangementResponse updateTeacher(UUID substituteId, UUID newTeacherId) {
+        UUID deptId = currentUser.departmentId();
+        Substitute sub = loadOwnedSubstitute(substituteId, deptId);
+        Lecture target = lectureRepository.findById(sub.getLectureId())
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LECTURE_NOT_FOUND", "Lecture not found."));
+
+        Teacher chosen = teacherRepository.findByIdAndDepartmentId(newTeacherId, deptId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "TEACHER_NOT_FOUND", "Teacher not found."));
+        if (!chosen.isActive()) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "TEACHER_INACTIVE", chosen.getFullName() + " is inactive.");
+        }
+        if (chosen.getId().equals(target.getTeacherId())) {
+            throw new AppException(
+                    HttpStatus.BAD_REQUEST,
+                    "SAME_AS_ABSENT_TEACHER",
+                    chosen.getFullName() + " is the absent teacher for this lecture."
+            );
+        }
+
+        validateTeacherAvailable(deptId, chosen, target, sub);
+
+        boolean able = teacherSubjectRepository.findByTeacherId(chosen.getId()).stream()
+                .anyMatch(ts -> ts.getSubjectId().equals(target.getSubjectId()));
+        String warning = able ? null : chosen.getFullName() + " is not listed as able to teach this subject.";
+
+        UUID previousTeacherId = sub.getSubstituteTeacherId();
+        boolean wasAccepted = sub.getStatus() == SubstituteStatus.ACCEPTED;
+
+        sub.setSubstituteTeacherId(chosen.getId());
+        if (!wasAccepted) {
+            sub.setStatus(SubstituteStatus.PROPOSED);
+        }
+        sub.setUpdatedAt(Instant.now());
+        substituteRepository.saveAndFlush(sub);
+
+        if (wasAccepted && !chosen.getId().equals(previousTeacherId)) {
+            Subject subject = subjectRepository.findById(target.getSubjectId()).orElse(null);
+            Section section = sectionRepository.findById(target.getSectionId()).orElse(null);
+            Teacher absentTeacher = teacherRepository.findById(target.getTeacherId()).orElse(null);
+
+            String subName = subject != null ? subject.getName() : "this lecture";
+            String secLabel = section != null ? "Section " + section.getName() : "class";
+            String dateLabel = sub.getOnDate().format(DISPLAY_DATE);
+
+            if (previousTeacherId != null) {
+                teacherRepository.findById(previousTeacherId).ifPresent(oldTeacher -> {
+                    if (oldTeacher.getUserAccountId() != null) {
+                        notificationService.send(
+                                oldTeacher.getUserAccountId(),
+                                "Your substitute arrangement for " + subName + " (" + secLabel
+                                        + ") on " + dateLabel + ", lecture " + target.getStartLecture()
+                                        + " was cancelled.",
+                                "/today"
+                        );
+                    }
+                });
+            }
+
+            notifyAcceptedArrangement(chosen, absentTeacher, subName, secLabel, dateLabel, target.getStartLecture());
+            historyService.record(
+                    "SUBSTITUTE",
+                    "Changed substitute for " + (absentTeacher != null ? absentTeacher.getFullName() : "teacher")
+                            + ", " + secLabel + ", " + dateLabel + " to " + chosen.getFullName() + "."
+            );
+        }
+
+        return new SubstituteArrangementResponse(
+                sub.getId(),
+                sub.getLeaveId(),
+                sub.getLectureId(),
+                sub.getOnDate(),
+                chosen.getId(),
+                chosen.getFullName(),
+                sub.getStatus(),
+                warning
+        );
+    }
+
+    @Transactional
+    public SubstituteArrangementResponse accept(UUID substituteId) {
+        UUID deptId = currentUser.departmentId();
+        Substitute sub = loadOwnedSubstitute(substituteId, deptId);
+        return acceptSingle(deptId, sub);
+    }
+
+    @Transactional
+    public AcceptAllSubstitutesResponse acceptAll(LocalDate date) {
+        UUID deptId = currentUser.departmentId();
+        List<Lecture> savedLectures = lectureRepository.findSavedLecturesByDepartment(deptId);
+        Set<UUID> deptLectureIds = new HashSet<>();
+        for (Lecture l : savedLectures) {
+            deptLectureIds.add(l.getId());
+        }
+
+        int accepted = 0;
+        int skippedNeeded = 0;
+        for (Substitute sub : substituteRepository.findByOnDate(date)) {
+            if (!deptLectureIds.contains(sub.getLectureId())) continue;
+            if (sub.getStatus() == SubstituteStatus.ACCEPTED) continue;
+            if (sub.getStatus() == SubstituteStatus.NEEDED || sub.getSubstituteTeacherId() == null) {
+                skippedNeeded++;
+                continue;
+            }
+            acceptSingle(deptId, sub);
+            accepted++;
+        }
+
+        return new AcceptAllSubstitutesResponse(date, accepted, skippedNeeded);
+    }
+
+    private SubstituteArrangementResponse acceptSingle(UUID deptId, Substitute sub) {
+        if (sub.getSubstituteTeacherId() == null) {
+            throw new AppException(
+                    HttpStatus.BAD_REQUEST,
+                    "SUBSTITUTE_TEACHER_REQUIRED",
+                    "Choose a substitute teacher before accepting."
+            );
+        }
+
+        Lecture target = lectureRepository.findById(sub.getLectureId())
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "LECTURE_NOT_FOUND", "Lecture not found."));
+        Teacher chosen = teacherRepository.findByIdAndDepartmentId(sub.getSubstituteTeacherId(), deptId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "TEACHER_NOT_FOUND", "Teacher not found."));
+
+        validateTeacherAvailable(deptId, chosen, target, sub);
+
+        if (sub.getStatus() != SubstituteStatus.ACCEPTED) {
+            sub.setStatus(SubstituteStatus.ACCEPTED);
+            sub.setUpdatedAt(Instant.now());
+            substituteRepository.saveAndFlush(sub);
+
+            Subject subject = subjectRepository.findById(target.getSubjectId()).orElse(null);
+            Section section = sectionRepository.findById(target.getSectionId()).orElse(null);
+            Teacher absentTeacher = teacherRepository.findById(target.getTeacherId()).orElse(null);
+
+            String subName = subject != null ? subject.getName() : "this lecture";
+            String secLabel = section != null ? "Section " + section.getName() : "class";
+            String dateLabel = sub.getOnDate().format(DISPLAY_DATE);
+
+            notifyAcceptedArrangement(chosen, absentTeacher, subName, secLabel, dateLabel, target.getStartLecture());
+            historyService.record(
+                    "SUBSTITUTE",
+                    "Accepted " + chosen.getFullName() + " as substitute for "
+                            + (absentTeacher != null ? absentTeacher.getFullName() : "teacher")
+                            + ", " + secLabel + ", " + dateLabel + "."
+            );
+        }
+
+        return new SubstituteArrangementResponse(
+                sub.getId(),
+                sub.getLeaveId(),
+                sub.getLectureId(),
+                sub.getOnDate(),
+                chosen.getId(),
+                chosen.getFullName(),
+                sub.getStatus(),
+                null
+        );
+    }
+
+    private void notifyAcceptedArrangement(
+            Teacher substituteTeacher,
+            Teacher absentTeacher,
+            String subjectName,
+            String sectionLabel,
+            String dateLabel,
+            int startLecture
+    ) {
+        if (substituteTeacher.getUserAccountId() != null) {
+            notificationService.send(
+                    substituteTeacher.getUserAccountId(),
+                    "You will take " + subjectName + " for " + sectionLabel
+                            + " on " + dateLabel + ", lecture " + startLecture + ".",
+                    "/today"
+            );
+        }
+        if (absentTeacher != null && absentTeacher.getUserAccountId() != null) {
+            notificationService.send(
+                    absentTeacher.getUserAccountId(),
+                    substituteTeacher.getFullName() + " will cover your " + subjectName
+                            + " (" + sectionLabel + ") on " + dateLabel + ", lecture " + startLecture + ".",
+                    "/today"
+            );
+        }
+    }
+
+    private void validateTeacherAvailable(UUID deptId, Teacher teacher, Lecture target, Substitute currentSub) {
+        boolean onLeave = leaveRepository.findAcceptedOnDate(deptId, currentSub.getOnDate()).stream()
+                .anyMatch(l -> l.getTeacherId().equals(teacher.getId()));
+        if (onLeave) {
+            throw new AppException(
+                    HttpStatus.CONFLICT,
+                    "TEACHER_ON_LEAVE",
+                    teacher.getFullName() + " is on leave on this date."
+            );
+        }
+
+        List<Lecture> allSaved = lectureRepository.findSavedLecturesByDepartment(deptId);
+        Map<UUID, Lecture> savedById = new HashMap<>();
+        for (Lecture l : allSaved) {
+            savedById.put(l.getId(), l);
+        }
+
+        if (isBusyBySavedTimetable(teacher.getId(), currentSub.getOnDate().getDayOfWeek(), target, allSaved)) {
+            throw new AppException(
+                    HttpStatus.CONFLICT,
+                    "TEACHER_BUSY",
+                    teacher.getFullName() + " already has a lecture at this time."
+            );
+        }
+
+        List<Substitute> daySubs = substituteRepository.findByOnDate(currentSub.getOnDate());
+        if (isBusyBySubstitute(teacher.getId(), currentSub.getOnDate(), target, savedById, daySubs, currentSub.getId())) {
+            throw new AppException(
+                    HttpStatus.CONFLICT,
+                    "TEACHER_BUSY_SUBSTITUTE",
+                    teacher.getFullName() + " is already covering another lecture at this time."
+            );
+        }
+    }
+
+    private Substitute loadOwnedSubstitute(UUID substituteId, UUID deptId) {
+        Substitute sub = substituteRepository.findById(substituteId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SUBSTITUTE_NOT_FOUND", "Substitute arrangement not found."));
+        leaveRepository.findByIdAndDepartmentId(sub.getLeaveId(), deptId)
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "SUBSTITUTE_NOT_FOUND", "Substitute arrangement not found."));
+        return sub;
+    }
+
+    private int statusOrder(String status) {
+        return switch (status) {
+            case "FREE_ABLE" -> 0;
+            case "FREE_NOT_ABLE" -> 1;
+            case "BUSY" -> 2;
+            default -> 3;
+        };
     }
 
     int prepareMissingForLeaveOnDate(Leave leave, LocalDate date) {
