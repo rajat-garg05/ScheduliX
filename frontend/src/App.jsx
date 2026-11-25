@@ -1,14 +1,28 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './features/auth/authContext';
+import { AuthProvider, useAuth } from './features/auth/authContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import AppShell from './components/AppShell';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import CheckEmailPage from './pages/CheckEmailPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import ChangePasswordPage from './pages/ChangePasswordPage';
 import DashboardPage from './pages/DashboardPage';
 import ComingSoonPage from './pages/ComingSoonPage';
 
 const queryClient = new QueryClient();
+
+function ChangePasswordRoute() {
+  const { user } = useAuth();
+  if (user?.mustChangePassword) {
+    return <ChangePasswordPage />;
+  }
+  return <AppShell />;
+}
 
 export default function App() {
   return (
@@ -19,17 +33,21 @@ export default function App() {
             {/* Public routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<ComingSoonPage title="Register department" />} />
-            <Route path="/forgot-password" element={<ComingSoonPage title="Forgot password" />} />
-            <Route path="/reset-password" element={<ComingSoonPage title="Reset password" />} />
-            <Route path="/verify-email" element={<ComingSoonPage title="Verify email" />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/check-email" element={<CheckEmailPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
 
             {/* Protected routes */}
             <Route element={<ProtectedRoute />}>
+              <Route element={<ChangePasswordRoute />}>
+                <Route path="/change-password" element={<ChangePasswordPage />} />
+              </Route>
+
               <Route element={<AppShell />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/notifications" element={<ComingSoonPage title="Notifications" />} />
-                <Route path="/change-password" element={<ComingSoonPage title="Change password" />} />
 
                 {/* HOD sections */}
                 <Route path="/setup/teachers" element={<ComingSoonPage title="Teachers" />} />

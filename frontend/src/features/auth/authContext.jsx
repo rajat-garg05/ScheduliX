@@ -1,42 +1,82 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import api, { registerAuthHandlers, setAccessToken } from '../../api/client';
 
-const STORAGE_KEY = 'schedulix_placeholder_user';
 const AuthContext = createContext(null);
 
-function loadStoredUser() {
-  try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
 export function AuthProvider({ children, initialUser }) {
-  const [user, setUser] = useState(() =>
-    initialUser !== undefined ? initialUser : loadStoredUser()
-  );
+  const hasInitialUser = initialUser !== undefined;
+  const [user, setUser] = useState(hasInitialUser ? initialUser : null);
+  const [loading, setLoading] = useState(!hasInitialUser);
 
-  // Replaced with real JWT login in Prompt 2.
-  function loginAsPlaceholder(role = 'HOD') {
-    const nextUser =
-      role === 'TEACHER'
-        ? { displayName: 'Prof. Sharma', role: 'TEACHER' }
-        : { displayName: 'HOD of Computer Science', role: 'HOD' };
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(nextUser));
-    setUser(nextUser);
+  const handleSessionExpired = useCallback(() => {
+    setAccessToken(null);
+    setUser(null);
+  }, []);
+
+  useEffect(() => {
+    registerAuthHandlers({
+      onRefreshed: (nextUser) => setUser(nextUser),
+      onExpired: handleSessionExpired,
+    });
+  }, [handleSessionExpired]);
+
+  useEffect(() => {
+    if (hasInitialUser) {
+      return;
+    }
+
+    let cancelled = false;
+    api
+      .post('/auth/refresh')
+      .then((res) => {
+        if (cancelled) return;
+        setAccessToken(res.data.accessToken);
+        setUser(res.data.user);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAccessToken(null);
+        setUser(null);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hasInitialUser]);
+
+  async function login(email, password) {
+    const res = await api.post('/auth/login', { email, password });
+    setAccessToken(res.data.accessToken);
+    setUser(res.data.user);
+    return res.data.user;
   }
 
-  function logout() {
-    sessionStorage.removeItem(STORAGE_KEY);
+  async function logout() {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // Clear local state even if the network request fails.
+    }
+    setAccessToken(null);
     setUser(null);
+  }
+
+  function markPasswordChanged() {
+    setUser((prev) => (prev ? { ...prev, mustChangePassword: false } : prev));
   }
 
   const value = {
     user,
+    loading,
     isLoggedIn: Boolean(user),
-    loginAsPlaceholder,
+    login,
     logout,
+    markPasswordChanged,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
