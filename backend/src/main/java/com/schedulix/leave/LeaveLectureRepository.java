@@ -1,0 +1,14 @@
+package com.schedulix.leave;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+
+public interface LeaveLectureRepository extends JpaRepository<LeaveLecture, LeaveLectureId> {
+
+    List<LeaveLecture> findByLeaveId(UUID leaveId);
+
+    List<LeaveLecture> findByLeaveIdAndOnDate(UUID leaveId, LocalDate onDate);
+}
