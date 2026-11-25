@@ -9,7 +9,8 @@
 - Prompt 6 (All 9 milestones): Make Timetable, Steps 1 to 5.
 - Prompt 7, Milestone 1: `TimetableMakeService` and `POST /api/timetables/{id}/make` + `TimetableMakeIntegrationTest`.
 - Prompt 7, Milestone 2: `PUT .../keep`, `POST .../keep-all`, `POST .../make-again` + `TimetableKeepAndMakeAgainIntegrationTest`.
-- Prompt 7, Milestone 3: `TimetableLifecycleService`, `TimetableDeletePreviewResponse`, `POST /api/timetables/{id}/save` (fresh busy-cell verify, atomic save, unique index), `GET /api/timetables/{id}/delete-preview`, unified `DELETE /api/timetables/{id}`, and `TimetableSaveAndDeleteIntegrationTest`.
+- Prompt 7, Milestone 3: `TimetableLifecycleService`, `POST .../save`, `GET .../delete-preview`, unified `DELETE /{id}` + `TimetableSaveAndDeleteIntegrationTest`.
+- Prompt 7, Milestone 4: `TimetableTreeResponse`, `TimetableViewService`, `TimetableViewController`, `GET /api/timetables/{id}/view`, `GET /api/tree`, `GET /api/timetables/saved`, `GET /api/sections/{id}/timetable`, and `TimetableViewAndTreeIntegrationTest`.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -30,4 +31,6 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 7, Milestone 4: View data (`GET /api/timetables/{id}/view`), tree (`GET /api/tree`), and read-only endpoints for HOD and teachers (`GET /api/timetables/saved`, `GET /api/sections/{id}/timetable`) + tests.
+- Prompt 7, Milestone 5: React — Make button, progress state, result class grids, Teachers tab, and plain error panel.
+- Prompt 7, Milestone 6: React — Keep this lecture, Keep all, Make again, and Save timetable.
+- Prompt 7, Milestone 7: React — Classes and Timetables tree page with View and Delete (with preview dialog).

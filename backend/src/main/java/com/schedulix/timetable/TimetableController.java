@@ -28,6 +28,7 @@ public class TimetableController {
     private final FixedLectureService fixedLectureService;
     private final TimetableMakeService makeService;
     private final TimetableLifecycleService lifecycleService;
+    private final TimetableViewService viewService;
 
     public TimetableController(
             TimetableDraftService draftService,
@@ -35,7 +36,8 @@ public class TimetableController {
             TimetableTeachersService teachersService,
             FixedLectureService fixedLectureService,
             TimetableMakeService makeService,
-            TimetableLifecycleService lifecycleService
+            TimetableLifecycleService lifecycleService,
+            TimetableViewService viewService
     ) {
         this.draftService = draftService;
         this.checkService = checkService;
@@ -43,6 +45,7 @@ public class TimetableController {
         this.fixedLectureService = fixedLectureService;
         this.makeService = makeService;
         this.lifecycleService = lifecycleService;
+        this.viewService = viewService;
     }
 
     @GetMapping
@@ -61,6 +64,15 @@ public class TimetableController {
     @GetMapping("/{id}")
     public TimetableDraftResponse getDraft(@PathVariable UUID id) {
         return draftService.getDraft(id);
+    }
+
+    @GetMapping("/{id}/view")
+    public TimetableViewResponse getView(
+            @PathVariable UUID id,
+            @RequestParam(value = "classId", required = false) UUID classId,
+            @RequestParam(value = "teacherId", required = false) UUID teacherId
+    ) {
+        return viewService.getView(id, classId, teacherId);
     }
 
     @PutMapping("/{id}/classes")

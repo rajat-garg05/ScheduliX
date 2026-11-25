@@ -3,6 +3,7 @@ package com.schedulix.timetable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface TimetableClassRepository extends JpaRepository<TimetableClass, TimetableClassId> {
@@ -12,4 +13,6 @@ public interface TimetableClassRepository extends JpaRepository<TimetableClass, 
     void deleteByTimetableId(UUID timetableId);
 
     boolean existsBySectionIdAndSavedTrue(UUID sectionId);
+
+    Optional<TimetableClass> findBySectionIdAndSavedTrue(UUID sectionId);
 }
