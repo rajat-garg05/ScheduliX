@@ -7,6 +7,12 @@ import java.util.UUID;
 @Component
 public class DefaultUsageChecker implements UsageChecker {
 
+    private final SectionSubjectRepository sectionSubjectRepository;
+
+    public DefaultUsageChecker(SectionSubjectRepository sectionSubjectRepository) {
+        this.sectionSubjectRepository = sectionSubjectRepository;
+    }
+
     @Override
     public boolean isTeacherUsed(UUID teacherId) {
         return false;
@@ -14,7 +20,7 @@ public class DefaultUsageChecker implements UsageChecker {
 
     @Override
     public boolean isSubjectUsed(UUID subjectId) {
-        return false;
+        return sectionSubjectRepository.existsBySubjectId(subjectId);
     }
 
     @Override
