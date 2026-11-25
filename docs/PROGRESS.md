@@ -9,7 +9,8 @@
 - Prompt 6 (All 9 milestones): Make Timetable, Steps 1 to 5.
 - Prompt 7 (All 7 milestones): Make, Keep, Save, and the Classes and Timetables Tree.
 - Prompt 8, Milestones 1–4: Backend `V6__leave_substitutes.sql`, `LeaveService`, `SubstituteService`, `TodayAndMyTimetableService`, and all leave/substitute/today/my-timetable endpoints.
-- Prompt 8, Milestone 5: Built `LeavePage.jsx` (`/leave`) for both HOD (filters, add leave with whole-day or specific-lecture picker, accept/reject with note, cancel) and Teacher (ask for leave, own requests, cancel pending).
+- Prompt 8, Milestone 5: Built `LeavePage.jsx` (`/leave`) for both HOD and Teacher.
+- Prompt 8, Milestone 6: Built `TodayPage.jsx` (`/today`) with date picker, HOD review banner, Check again, Accept all, one-by-one Accept, manual substitute dropdown, and teacher highlight.
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -32,5 +33,4 @@
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 8, Milestone 6: React — Today page (`/today`) with date picker, HOD review banner, Accept all / one-by-one, and manual substitute dropdown.
-- Prompt 8, Milestone 7: React — Teacher views (All timetables, My timetable), extend `UsageChecker` with leave and substitutes, finalize `docs/PROGRESS.md`.
+- Prompt 8, Milestone 7: React — Teacher views (`AllTimetablesPage`, `MyTimetablePage`), extend `UsageChecker` with leave and substitutes, and finalize Prompt 8 `docs/PROGRESS.md`.

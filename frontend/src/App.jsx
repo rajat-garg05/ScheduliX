@@ -20,6 +20,7 @@ import SemesterPlansPage from './pages/SemesterPlansPage';
 import MakeTimetablePage from './pages/MakeTimetablePage';
 import ClassesTimetablesPage from './pages/ClassesTimetablesPage';
 import LeavePage from './pages/LeavePage';
+import TodayPage from './pages/TodayPage';
 import DashboardPage from './pages/DashboardPage';
 import ComingSoonPage from './pages/ComingSoonPage';
 
@@ -67,7 +68,7 @@ export default function App() {
                 <Route path="/timetables" element={<ClassesTimetablesPage />} />
                 <Route path="/make-timetable" element={<MakeTimetablePage />} />
                 <Route path="/leave" element={<LeavePage />} />
-                <Route path="/today" element={<ComingSoonPage title="Today" />} />
+                <Route path="/today" element={<TodayPage />} />
 
                 {/* Teacher sections */}
                 <Route path="/all-timetables" element={<ComingSoonPage title="All timetables" />} />
