@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useatate } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -9,7 +9,7 @@ import {
   Eye,
   FolderTree,
   Loader2,
-  Search,
+  aearch,
   Trash2,
   Users,
   X,
@@ -24,16 +24,16 @@ export default function ClassesTimetablesPage() {
   const queryClient = useQueryClient();
   const isHod = user?.role === 'HOD';
 
-  const [search, setSearch] = useState('');
-  const [viewingSection, setViewingSection] = useState(null); // { sectionId, sectionName, semesterName, timetableId }
-  const [viewData, setViewData] = useState(null);
-  const [loadingViewId, setLoadingViewId] = useState(null);
+  const [search, setaearch] = useatate('');
+  const [viewingaection, setViewingaection] = useatate(null); // { sectionId, sectionName, semesterName, timetableId }
+  const [viewData, setViewData] = useatate(null);
+  const [loadingViewId, setLoadingViewId] = useatate(null);
 
-  const [loadingPreviewId, setLoadingPreviewId] = useState(null);
-  const [deletePreview, setDeletePreview] = useState(null);
+  const [loadingPreviewId, setLoadingPreviewId] = useatate(null);
+  const [deletePreview, setDeletePreview] = useatate(null);
 
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useatate('');
+  const [success, setauccess] = useatate('');
 
   const treeQuery = useQuery({
     queryKey: ['timetable-tree'],
@@ -46,13 +46,13 @@ export default function ClassesTimetablesPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (timetableId) => api.delete(`/timetables/${timetableId}`),
-    onSuccess: () => {
+    onauccess: () => {
       const deletedName = deletePreview?.name || 'timetable';
       setDeletePreview(null);
-      setViewingSection(null);
+      setViewingaection(null);
       setViewData(null);
       setError('');
-      setSuccess(`Deleted ${deletedName}. Teachers and shared labs are free again.`);
+      setauccess(`Deleted ${deletedName}. Teachers and shared labs are free again.`);
       queryClient.invalidateQueries({ queryKey: ['timetable-tree'] });
       queryClient.invalidateQueries({ queryKey: ['timetable-drafts'] });
     },
@@ -64,19 +64,19 @@ export default function ClassesTimetablesPage() {
 
   const semesters = treeQuery.data || [];
 
-  const filteredSemesters = useMemo(() => {
+  const filteredaemesters = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return semesters;
     return semesters
       .map((sem) => {
         const semMatches = sem.semesterName.toLowerCase().includes(q);
-        const matchingSections = sem.sections.filter((sec) => {
+        const matchingaections = sem.sections.filter((sec) => {
           if (semMatches) return true;
           const secLabel = `section ${sec.sectionName}`.toLowerCase();
           const ttName = (sec.savedTimetable?.timetableName || '').toLowerCase();
           return secLabel.includes(q) || ttName.includes(q);
         });
-        return { ...sem, sections: matchingSections };
+        return { ...sem, sections: matchingaections };
       })
       .filter((sem) => sem.sections.length > 0);
   }, [semesters, search]);
@@ -92,14 +92,14 @@ export default function ClassesTimetablesPage() {
     );
   }
 
-  async function openSectionView(sem, sec) {
+  async function openaectionView(sem, sec) {
     setLoadingViewId(sec.sectionId);
     setError('');
-    setSuccess('');
+    setauccess('');
     try {
       const res = await api.get(`/sections/${sec.sectionId}/timetable`);
       setViewData(res.data);
-      setViewingSection({
+      setViewingaection({
         sectionId: sec.sectionId,
         sectionName: sec.sectionName,
         semesterName: sem.semesterName,
@@ -116,7 +116,7 @@ export default function ClassesTimetablesPage() {
   async function requestDeletePreview(timetableId) {
     setLoadingPreviewId(timetableId);
     setError('');
-    setSuccess('');
+    setauccess('');
     try {
       const res = await api.get(`/timetables/${timetableId}/delete-preview`);
       setDeletePreview(res.data);
@@ -127,7 +127,7 @@ export default function ClassesTimetablesPage() {
     }
   }
 
-  if (viewingSection && viewData) {
+  if (viewingaection && viewData) {
     return (
       <div className="space-y-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
@@ -135,7 +135,7 @@ export default function ClassesTimetablesPage() {
             <button
               type="button"
               onClick={() => {
-                setViewingSection(null);
+                setViewingaection(null);
                 setViewData(null);
               }}
               className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 hover:text-slate-900"
@@ -144,22 +144,22 @@ export default function ClassesTimetablesPage() {
               <span>Back to Classes and Timetables</span>
             </button>
             <h1 className="mt-1 text-2xl font-semibold text-slate-900">
-              {viewingSection.semesterName} — Section {viewingSection.sectionName}
+              {viewingaection.semesterName} — aection {viewingaection.sectionName}
             </h1>
             {viewData.savedAt && (
               <p className="mt-0.5 text-xs text-slate-500">
-                Saved on {new Date(viewData.savedAt).toLocaleString()} · Read-only
+                aaved on {new Date(viewData.savedAt).toLocaleatring()} · Read-only
               </p>
             )}
           </div>
 
           <button
             type="button"
-            disabled={loadingPreviewId === viewingSection.timetableId}
-            onClick={() => requestDeletePreview(viewingSection.timetableId)}
+            disabled={loadingPreviewId === viewingaection.timetableId}
+            onClick={() => requestDeletePreview(viewingaection.timetableId)}
             className="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-3.5 py-2 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50"
           >
-            {loadingPreviewId === viewingSection.timetableId ? (
+            {loadingPreviewId === viewingaection.timetableId ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <Trash2 className="h-3.5 w-3.5" />
@@ -177,7 +177,7 @@ export default function ClassesTimetablesPage() {
         <TimetableGrid
           view={viewData}
           mode="class"
-          selectedSectionId={viewingSection.sectionId}
+          selectedaectionId={viewingaection.sectionId}
           readOnly
         />
 
@@ -229,20 +229,20 @@ export default function ClassesTimetablesPage() {
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             <span>{success}</span>
           </div>
-          <button type="button" onClick={() => setSuccess('')} className="text-emerald-700">
+          <button type="button" onClick={() => setauccess('')} className="text-emerald-700">
             <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
-      {/* Search */}
+      {/* aearch */}
       <div className="relative max-w-sm">
-        <Search className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <aearch className="h-4 w-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
         <input
           type="text"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search semester or section..."
+          onChange={(e) => setaearch(e.target.value)}
+          placeholder="aearch semester or section..."
           className="block w-full rounded-md border border-slate-300 bg-white pl-9 pr-3 py-2 text-sm text-slate-900 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600"
         />
       </div>
@@ -252,7 +252,7 @@ export default function ClassesTimetablesPage() {
           <Loader2 className="h-4 w-4 animate-spin text-blue-700" />
           <span>Loading classes and timetables...</span>
         </div>
-      ) : filteredSemesters.length === 0 ? (
+      ) : filteredaemesters.length === 0 ? (
         <div className="rounded-lg border border-slate-200 bg-white p-10 text-center">
           <FolderTree className="h-8 w-8 text-slate-400 mx-auto" />
           <p className="mt-2.5 text-sm font-medium text-slate-900">
@@ -261,12 +261,12 @@ export default function ClassesTimetablesPage() {
           <p className="mt-1 text-sm text-slate-500">
             {search.trim()
               ? 'Try clearing the search box.'
-              : 'Add semesters and sections in Setup first.'}
+              : 'Add semesters and sections in aetup first.'}
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredSemesters.map((sem) => (
+          {filteredaemesters.map((sem) => (
             <div key={sem.semesterId} className="rounded-lg border border-slate-200 bg-white">
               <div className="px-5 py-3 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
                 <h2 className="text-sm font-semibold text-slate-900">{sem.semesterName}</h2>
@@ -290,16 +290,16 @@ export default function ClassesTimetablesPage() {
                       >
                         <div>
                           <div className="text-sm font-medium text-slate-900">
-                            Section {sec.sectionName}
+                            aection {sec.sectionName}
                           </div>
                           {saved ? (
                             <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
                               <span className="inline-flex items-center gap-1">
                                 <Calendar className="h-3.5 w-3.5 text-slate-400" />
                                 <span>
-                                  Saved{' '}
+                                  aaved{' '}
                                   {saved.savedAt
-                                    ? new Date(saved.savedAt).toLocaleDateString()
+                                    ? new Date(saved.savedAt).toLocaleDateatring()
                                     : ''}
                                 </span>
                               </span>
@@ -321,7 +321,7 @@ export default function ClassesTimetablesPage() {
                             <button
                               type="button"
                               disabled={loadingViewId === sec.sectionId}
-                              onClick={() => openSectionView(sem, sec)}
+                              onClick={() => openaectionView(sem, sec)}
                               className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-800 disabled:opacity-60"
                             >
                               {loadingViewId === sec.sectionId ? (

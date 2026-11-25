@@ -60,7 +60,7 @@ export default function MakeTimetablePage() {
       setPageError('');
     },
     onError: (err) => {
-      setPageError(getErrorMessage(err, 'Could not delete this draft.'));
+      setPageError(getErrorMessage(err, 'Could not delete this unfinished timetable.'));
       setDeleteTarget(null);
     },
   });
@@ -92,7 +92,7 @@ export default function MakeTimetablePage() {
       setStep((res.data?.lectureCount || 0) > 0 ? 6 : 2);
       setWizardOpen(true);
     } catch (err) {
-      setPageError(getErrorMessage(err, 'Could not open this draft.'));
+      setPageError(getErrorMessage(err, 'Could not open this unfinished timetable.'));
     } finally {
       setLoadingDraftId(null);
     }
@@ -251,7 +251,7 @@ export default function MakeTimetablePage() {
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Make Timetable</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Start a new timetable for a semester or continue an unfinished draft.
+            Start a new timetable for a semester or continue an unfinished one.
           </p>
         </div>
 
@@ -279,7 +279,7 @@ export default function MakeTimetablePage() {
         {draftsQuery.isLoading ? (
           <div className="p-8 flex items-center justify-center gap-2 text-sm text-slate-600">
             <Loader2 className="h-4 w-4 animate-spin text-blue-700" />
-            <span>Loading drafts...</span>
+            <span>Loading unfinished timetables...</span>
           </div>
         ) : drafts.length === 0 ? (
           <div className="p-10 text-center">
@@ -336,10 +336,10 @@ export default function MakeTimetablePage() {
         title="Delete unfinished timetable"
         message={
           deleteTarget
-            ? `Delete the draft "${deleteTarget.name}"? This removes its time settings, teacher choices, and fixed lectures.`
+            ? `Delete "${deleteTarget.name}"? This removes its time settings, teacher choices, and fixed lectures.`
             : ''
         }
-        confirmLabel="Delete draft"
+        confirmLabel="Delete"
         danger
         loading={deleteDraftMutation.isPending}
         onConfirm={() => deleteDraftMutation.mutate(deleteTarget.id)}

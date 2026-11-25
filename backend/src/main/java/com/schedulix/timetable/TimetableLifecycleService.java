@@ -82,7 +82,7 @@ public class TimetableLifecycleService {
 
         List<TimetableClass> classes = timetableClassRepository.findByTimetableId(tt.getId());
         if (classes.isEmpty()) {
-            throw new AppException(HttpStatus.BAD_REQUEST, "NO_CLASSES", "This draft has no classes selected.");
+            throw new AppException(HttpStatus.BAD_REQUEST, "NO_CLASSES", "No classes are selected yet.");
         }
 
         List<Lecture> storedLectures = lectureRepository.findByTimetableId(tt.getId());
@@ -247,13 +247,13 @@ public class TimetableLifecycleService {
         if (wasSaved) {
             historyService.record("TIMETABLE", "Deleted saved timetable for " + name + ".");
         } else {
-            historyService.record("TIMETABLE", "Deleted unfinished timetable draft: " + name + ".");
+            historyService.record("TIMETABLE", "Deleted unfinished timetable: " + name + ".");
         }
     }
 
     private String buildDeleteSummary(TimetableStatus status, List<String> sections, List<String> teachers) {
         if (status == TimetableStatus.DRAFT) {
-            return "This removes the unfinished draft, its teacher choices, and any fixed lectures.";
+            return "This removes the unfinished timetable, its teacher choices, and any fixed lectures.";
         }
         String teacherPart = teachers.isEmpty()
                 ? "Teachers will be free in these slots again."
