@@ -2,11 +2,19 @@
 FROM maven:3.9.9-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 
-COPY pom.xml .
-RUN mvn dependency:go-offline -B
+COPY pom.xml maven-settings.xml ./
+RUN mvn -B -s maven-settings.xml \
+    -Daether.connector.basic.threads=4 \
+    -Daether.transport.http.retryHandler.count=5 \
+    -Daether.transport.http.retryHandler.interval=5000 \
+    dependency:resolve -DincludeScope=runtime dependency:resolve-plugins
 
 COPY src ./src
-RUN mvn package -DskipTests -B
+RUN mvn -B -s maven-settings.xml \
+    -Daether.connector.basic.threads=4 \
+    -Daether.transport.http.retryHandler.count=5 \
+    -Daether.transport.http.retryHandler.interval=5000 \
+    package -Dmaven.test.skip=true
 
 # Stage 2: slim Java 21 runtime
 FROM eclipse-temurin:21-jre-alpine
