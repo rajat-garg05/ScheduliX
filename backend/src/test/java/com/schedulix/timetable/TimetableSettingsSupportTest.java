@@ -1,10 +1,13 @@
 package com.schedulix.timetable;
 
 import com.schedulix.common.AppException;
-import com.schedulix.timetable.TimetableSettings.BreakSetting;
+import com.schedulix.timetable.dto.TimetableSettings.BreakSetting;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import com.schedulix.timetable.dto.DayPreviewSlot;
+import com.schedulix.timetable.dto.TimetableSettings;
+import com.schedulix.timetable.service.TimetableSettingsSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

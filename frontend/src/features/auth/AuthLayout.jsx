@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom';
+import BrandLogo from '../../components/BrandLogo';
 
 export default function AuthLayout({ title, subtitle, children, footer }) {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center px-4 py-10">
       <div className="w-full max-w-md mx-auto">
         <div className="mb-6 text-center">
-          <Link to="/" className="text-xl font-semibold tracking-tight text-slate-900">
-            Scheduli<span className="text-blue-700">X</span>
+          <Link to="/" aria-label="ScheduliX" className="inline-flex items-center">
+            <BrandLogo size="lg" />
           </Link>
         </div>
 

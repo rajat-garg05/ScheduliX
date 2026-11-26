@@ -15,6 +15,17 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import com.schedulix.auth.entity.AccountStatus;
+import com.schedulix.auth.entity.Department;
+import com.schedulix.auth.repository.DepartmentRepository;
+import com.schedulix.auth.entity.EmailToken;
+import com.schedulix.auth.repository.EmailTokenRepository;
+import com.schedulix.auth.entity.RefreshToken;
+import com.schedulix.auth.repository.RefreshTokenRepository;
+import com.schedulix.auth.entity.TokenPurpose;
+import com.schedulix.auth.entity.UserAccount;
+import com.schedulix.auth.repository.UserAccountRepository;
+import com.schedulix.auth.entity.UserRole;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

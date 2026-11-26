@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import api, { getErrorMessage } from '../api/client';
+import BrandLogo from '../components/BrandLogo';
 import { useAuth } from '../features/auth/authContext';
 
 export default function ChangePasswordPage() {
@@ -153,9 +154,7 @@ export default function ChangePasswordPage() {
       <div className="min-h-screen bg-slate-50 flex flex-col justify-center px-4 py-10">
         <div className="w-full max-w-md mx-auto">
           <div className="mb-6 flex items-center justify-between">
-            <span className="text-xl font-semibold tracking-tight text-slate-900">
-              Scheduli<span className="text-blue-700">X</span>
-            </span>
+            <BrandLogo size="lg" />
             <button
               type="button"
               onClick={handleLogout}

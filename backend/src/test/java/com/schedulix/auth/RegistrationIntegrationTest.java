@@ -19,6 +19,15 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import com.schedulix.auth.entity.AccountStatus;
+import com.schedulix.auth.dto.EmailRequest;
+import com.schedulix.auth.service.EmailSender;
+import com.schedulix.auth.dto.MessageResponse;
+import com.schedulix.auth.service.RateLimiter;
+import com.schedulix.auth.dto.RegisterRequest;
+import com.schedulix.auth.entity.UserAccount;
+import com.schedulix.auth.repository.UserAccountRepository;
+import com.schedulix.auth.dto.VerifyEmailRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

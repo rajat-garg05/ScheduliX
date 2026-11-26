@@ -1,5 +1,5 @@
-import { Link } from Creact-router-domC;
-import { useQuery } from C@tanstack/react-queryC;
+import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   AlertTriangle,
   ArrowRight,
@@ -12,26 +12,26 @@ import {
   FolderTree,
   Loader2,
   Users,
-} from Clucide-reactC;
-import api, { getErrorMessage } from C../api/clientC;
-import { useAuth } from C../features/auth/authContextC;
+} from 'lucide-react';
+import api, { getErrorMessage } from '../api/client';
+import { useAuth } from '../features/auth/authContext';
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const isHod = user?.role === CHODC;
+  const isHod = user?.role === 'HOD';
 
   const dashQuery = useQuery({
-    queryKey: [CdashboardC],
+    queryKey: ['dashboard'],
     queryFn: async () => {
-      const res = await api.get(C/dashboardC);
+      const res = await api.get('/dashboard');
       return res.data;
     },
   });
 
   const noticesQuery = useQuery({
-    queryKey: [Cdashboard-notificationsC],
+    queryKey: ['dashboard-notifications'],
     queryFn: async () => {
-      const res = await api.get(C/notificationsC, { params: { page: 0, size: 5 } });
+      const res = await api.get('/notifications', { params: { page: 0, size: 5 } });
       return res.data?.items || [];
     },
     enabled: !isHod,
@@ -49,7 +49,7 @@ export default function DashboardPage() {
   if (dashQuery.isError) {
     return (
       <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-        {getErrorMessage(dashQuery.error, CCould not load dashboard.C)}
+        {getErrorMessage(dashQuery.error, 'Could not load dashboard.')}
       </div>
     );
   }
@@ -62,45 +62,45 @@ export default function DashboardPage() {
 
     // Pick the most sensible next-step shortcut
     let nextStep = {
-      label: CMake TimetableC,
-      description: CCreate a new timetable or continue an unfinished draft.C,
-      to: C/make-timetableC,
+      label: 'Make Timetable',
+      description: 'Create a new timetable or continue an unfinished draft.',
+      to: '/make-timetable',
     };
     if (h.activeTeacherCount === 0) {
       nextStep = {
-        label: CAdd teachersC,
-        description: CStart by adding your department teachers or uploading a CSV file.C,
-        to: C/setup/teachersC,
+        label: 'Add teachers',
+        description: 'Start by adding your department teachers or uploading a CSV file.',
+        to: '/setup/teachers',
       };
     } else if (h.activeSubjectCount === 0) {
       nextStep = {
-        label: CAdd subjectsC,
-        description: CAdd your theory subjects and labs so you can build semester plans.C,
-        to: C/setup/subjectsC,
+        label: 'Add subjects',
+        description: 'Add your theory subjects and labs so you can build semester plans.',
+        to: '/setup/subjects',
       };
     } else if (h.totalSectionCount === 0) {
       nextStep = {
-        label: CSet up semester plansC,
-        description: CCreate semesters, sections, and weekly lecture counts.C,
-        to: C/setup/semester-plansC,
+        label: 'Set up semester plans',
+        description: 'Create semesters, sections, and weekly lecture counts.',
+        to: '/setup/semester-plans',
       };
     } else if (h.todayReviewCount > 0) {
       nextStep = {
-        label: CReview today’s substitutesC,
-        description: `${h.todayReviewCount} lecture${h.todayReviewCount === 1 ? CC : CsC} need your review on Today.`,
-        to: C/todayC,
+        label: 'Review today’s substitutes',
+        description: `${h.todayReviewCount} lecture${h.todayReviewCount === 1 ? '' : 's'} need your review on Today.`,
+        to: '/today',
       };
     } else if (h.pendingLeaveCount > 0) {
       nextStep = {
-        label: CReview leave requestsC,
-        description: `${h.pendingLeaveCount} leave request${h.pendingLeaveCount === 1 ? CC : CsC} waiting for your decision.`,
-        to: C/leaveC,
+        label: 'Review leave requests',
+        description: `${h.pendingLeaveCount} leave request${h.pendingLeaveCount === 1 ? '' : 's'} waiting for your decision.`,
+        to: '/leave',
       };
     } else if (unsavedClasses > 0) {
       nextStep = {
-        label: CMake a timetableC,
-        description: `${unsavedClasses} class${unsavedClasses === 1 ? CC : CesC} still do not have a saved timetable.`,
-        to: C/make-timetableC,
+        label: 'Make a timetable',
+        description: `${unsavedClasses} class${unsavedClasses === 1 ? '' : 'es'} still do not have a saved timetable.`,
+        to: '/make-timetable',
       };
     }
 
@@ -109,7 +109,7 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl font-semibold text-slate-900">Dashboard</h1>
           <p className="mt-1 text-sm text-slate-600">
-            Overview of {user?.departmentName || Cyour departmentC} for {data.todayDate}.
+            Overview of {user?.departmentName || 'your department'} for {data.todayDate}.
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export default function DashboardPage() {
               <FolderTree className="h-4 w-4 text-slate-400" />
             </div>
             <div className="mt-2 text-2xl font-semibold text-slate-900">
-              {h.savedTimetableSectionCount}{C C}
+              {h.savedTimetableSectionCount}{' '}
               <span className="text-sm font-normal text-slate-500">
                 / {h.totalSectionCount} classes
               </span>
@@ -161,8 +161,8 @@ export default function DashboardPage() {
             to="/leave"
             className={`rounded-lg border p-4 transition-colors ${
               h.pendingLeaveCount > 0
-                ? Cborder-amber-200 bg-amber-50/60 hover:border-amber-300C
-                : Cborder-slate-200 bg-white hover:border-slate-300C
+                ? 'border-amber-200 bg-amber-50/60 hover:border-amber-300'
+                : 'border-slate-200 bg-white hover:border-slate-300'
             }`}
           >
             <div className="flex items-center justify-between text-xs font-medium text-slate-600">
@@ -178,8 +178,8 @@ export default function DashboardPage() {
             to="/today"
             className={`rounded-lg border p-4 transition-colors ${
               h.todayReviewCount > 0
-                ? Cborder-amber-200 bg-amber-50/60 hover:border-amber-300C
-                : Cborder-slate-200 bg-white hover:border-slate-300C
+                ? 'border-amber-200 bg-amber-50/60 hover:border-amber-300'
+                : 'border-slate-200 bg-white hover:border-slate-300'
             }`}
           >
             <div className="flex items-center justify-between text-xs font-medium text-slate-600">
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="text-xs text-slate-600">
                     {lec.semesterName} · Section {lec.sectionName}
-                    {lec.sharedPlace ? ` · ${lec.sharedPlace}` : CC}
+                    {lec.sharedPlace ? ` · ${lec.sharedPlace}` : ''}
                   </div>
                 </div>
               ))}

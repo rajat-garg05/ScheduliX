@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Bell, ChevronDown, KeyRound, LogOut, Menu, User, X } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../features/auth/authContext';
+import BrandLogo from './BrandLogo';
 import { MENU_BY_ROLE } from './menuItems';
 
 export default function AppShell() {
@@ -94,8 +95,8 @@ export default function AppShell() {
       {/* Desktop sidebar */}
       <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 border-r border-slate-200 bg-white">
         <div className="h-14 flex items-center px-5 border-b border-slate-200">
-          <Link to="/dashboard" className="text-lg font-semibold tracking-tight text-slate-900">
-            Scheduli<span className="text-blue-700">X</span>
+          <Link to="/dashboard" aria-label="ScheduliX" className="inline-flex items-center">
+            <BrandLogo size="md" />
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
@@ -112,9 +113,7 @@ export default function AppShell() {
           />
           <aside className="relative z-50 w-64 max-w-xs bg-white flex flex-col border-r border-slate-200">
             <div className="h-14 flex items-center justify-between px-5 border-b border-slate-200">
-              <span className="text-lg font-semibold tracking-tight text-slate-900">
-                Scheduli<span className="text-blue-700">X</span>
-              </span>
+              <BrandLogo size="md" />
               <button
                 type="button"
                 onClick={() => setSidebarOpen(false)}

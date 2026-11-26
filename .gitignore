@@ -5,12 +5,15 @@
 
 # Backend (Maven / Java)
 backend/target/
+backend/dev-run.log
 *.log
 
-# Frontend (Node / Vite)
+# Frontend (Node / Vite / Playwright)
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/test-results/
+frontend/playwright-report/
 
 # IDEs and OS
 .idea/

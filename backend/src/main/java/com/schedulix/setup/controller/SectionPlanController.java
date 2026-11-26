@@ -1,0 +1,40 @@
+package com.schedulix.setup.controller;
+
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+import java.util.UUID;
+import com.schedulix.setup.dto.PlanItemRequest;
+import com.schedulix.setup.dto.SectionPlanResponse;
+import com.schedulix.setup.service.SectionPlanService;
+
+@RestController
+@RequestMapping("/api/sections")
+@PreAuthorize("hasRole('HOD')")
+public class SectionPlanController {
+
+    private final SectionPlanService sectionPlanService;
+
+    public SectionPlanController(SectionPlanService sectionPlanService) {
+        this.sectionPlanService = sectionPlanService;
+    }
+
+    @GetMapping("/{id}/plan")
+    public SectionPlanResponse getPlan(@PathVariable UUID id) {
+        return sectionPlanService.getPlan(id);
+    }
+
+    @PutMapping("/{id}/plan")
+    public SectionPlanResponse replacePlan(
+            @PathVariable UUID id,
+            @RequestBody List<PlanItemRequest> items
+    ) {
+        return sectionPlanService.replacePlan(id, items);
+    }
+}

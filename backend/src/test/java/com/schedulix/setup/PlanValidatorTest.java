@@ -1,8 +1,8 @@
 package com.schedulix.setup;
 
-import com.schedulix.setup.PlanValidator.PlanEntry;
-import com.schedulix.setup.PlanValidator.PlanSubjectInfo;
-import com.schedulix.setup.PlanValidator.ValidationResult;
+import com.schedulix.setup.service.PlanValidator.PlanEntry;
+import com.schedulix.setup.service.PlanValidator.PlanSubjectInfo;
+import com.schedulix.setup.service.PlanValidator.ValidationResult;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import com.schedulix.setup.service.PlanValidator;
+import com.schedulix.setup.entity.SubjectKind;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

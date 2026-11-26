@@ -37,7 +37,7 @@ function ChangePasswordRoute() {
 
 export default function App() {
   return (
-    <QueryClientProvider client="{queryClient}">
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
           <Routes>

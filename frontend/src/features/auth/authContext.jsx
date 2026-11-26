@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import api, { registerAuthHandlers, setAccessToken } from '../../api/client';
+import api, { refreshSession, registerAuthHandlers, setAccessToken } from '../../api/client';
 
 const AuthContext = createContext(null);
 
@@ -26,12 +26,11 @@ export function AuthProvider({ children, initialUser }) {
     }
 
     let cancelled = false;
-    api
-      .post('/auth/refresh')
-      .then((res) => {
+    refreshSession()
+      .then((data) => {
         if (cancelled) return;
-        setAccessToken(res.data.accessToken);
-        setUser(res.data.user);
+        setAccessToken(data.accessToken);
+        setUser(data.user);
       })
       .catch(() => {
         if (cancelled) return;

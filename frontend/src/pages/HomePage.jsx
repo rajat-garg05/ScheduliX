@@ -8,6 +8,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useAuth } from '../features/auth/authContext';
+import BrandLogo from '../components/BrandLogo';
 import SampleTimetable from '../components/SampleTimetable';
 
 const HIGHLIGHTS = [
@@ -69,8 +70,8 @@ export default function HomePage() {
       {/* Top bar */}
       <header className="border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="text-xl font-semibold tracking-tight text-slate-900">
-            Scheduli<span className="text-blue-700">X</span>
+          <Link to="/" aria-label="ScheduliX" className="inline-flex items-center">
+            <BrandLogo size="lg" />
           </Link>
 
           <div className="flex items-center gap-3">

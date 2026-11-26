@@ -18,6 +18,18 @@ export function registerAuthHandlers({ onRefreshed, onExpired }) {
   onSessionExpired = onExpired;
 }
 
+export function refreshSession() {
+  if (!refreshPromise) {
+    refreshPromise = axios
+      .post('/api/auth/refresh', null, { withCredentials: true })
+      .then((res) => res.data)
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
 const api = axios.create({
   baseURL: '/api',
   withCredentials: true,
@@ -61,16 +73,7 @@ api.interceptors.response.use(
     original._retried = true;
 
     try {
-      if (!refreshPromise) {
-        refreshPromise = axios
-          .post('/api/auth/refresh', null, { withCredentials: true })
-          .then((res) => res.data)
-          .finally(() => {
-            refreshPromise = null;
-          });
-      }
-
-      const data = await refreshPromise;
+      const data = await refreshSession();
       setAccessToken(data.accessToken);
       if (onSessionRefreshed) {
         onSessionRefreshed(data.user);

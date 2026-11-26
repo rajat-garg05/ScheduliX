@@ -1,15 +1,18 @@
 package com.schedulix.timetable;
 
 import com.schedulix.engine.BusyCell;
-import com.schedulix.timetable.BusyCellService.BusyCells;
-import com.schedulix.timetable.BusyCellService.SavedLectureSlot;
-import com.schedulix.timetable.TimetableSettings.BreakSetting;
+import com.schedulix.timetable.service.BusyCellService.BusyCells;
+import com.schedulix.timetable.service.BusyCellService.SavedLectureSlot;
+import com.schedulix.timetable.dto.TimetableSettings.BreakSetting;
 import org.junit.jupiter.api.Test;
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.UUID;
+import com.schedulix.timetable.service.BusyCellService;
+import com.schedulix.timetable.dto.TimetableSettings;
+import com.schedulix.timetable.service.TimetableSettingsSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

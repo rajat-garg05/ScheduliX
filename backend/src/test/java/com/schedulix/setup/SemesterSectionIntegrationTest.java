@@ -1,14 +1,14 @@
 package com.schedulix.setup;
 
-import com.schedulix.auth.AccountStatus;
-import com.schedulix.auth.Department;
-import com.schedulix.auth.DepartmentRepository;
-import com.schedulix.auth.EmailSender;
-import com.schedulix.auth.LoginRequest;
-import com.schedulix.auth.LoginResponse;
-import com.schedulix.auth.UserAccount;
-import com.schedulix.auth.UserAccountRepository;
-import com.schedulix.auth.UserRole;
+import com.schedulix.auth.entity.AccountStatus;
+import com.schedulix.auth.entity.Department;
+import com.schedulix.auth.repository.DepartmentRepository;
+import com.schedulix.auth.service.EmailSender;
+import com.schedulix.auth.dto.LoginRequest;
+import com.schedulix.auth.dto.LoginResponse;
+import com.schedulix.auth.entity.UserAccount;
+import com.schedulix.auth.repository.UserAccountRepository;
+import com.schedulix.auth.entity.UserRole;
 import com.schedulix.common.ApiError;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +29,11 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import com.schedulix.setup.service.SavedTimetableLookup;
+import com.schedulix.setup.dto.SectionRequest;
+import com.schedulix.setup.dto.SectionResponse;
+import com.schedulix.setup.dto.SemesterRequest;
+import com.schedulix.setup.dto.SemesterResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

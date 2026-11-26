@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AlertCircle,
   ArrowLeft,
@@ -34,6 +34,7 @@ export default function Step6Result({
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
   const [actionSuccess, setActionSuccess] = useState('');
+  const initialTriggerRef = useRef(null);
 
   // Active tab: sectionId or 'TEACHERS'
   const [activeTab, setActiveTab] = useState('');
@@ -48,6 +49,8 @@ export default function Step6Result({
     try {
       const res = await api.post(`/timetables/${draft.id}/make`);
       if (res.data?.ok && res.data?.view) {
+        setError('');
+        setMessages([]);
         setView(res.data.view);
         if (res.data.view.sections?.length > 0) {
           setActiveTab((prev) => prev || res.data.view.sections[0].id);
@@ -80,12 +83,17 @@ export default function Step6Result({
   }
 
   useEffect(() => {
-    if (autoMake) {
+    const modeKey = autoMake ? 'auto' : (draft?.lectureCount || 0) > 0 ? 'view' : 'make';
+    const triggerKey = `${draft.id}:${modeKey}`;
+    if (initialTriggerRef.current === triggerKey) {
+      return;
+    }
+    initialTriggerRef.current = triggerKey;
+
+    if (autoMake || (draft?.lectureCount || 0) === 0) {
       runMake();
-    } else if ((draft?.lectureCount || 0) > 0) {
-      loadExistingView();
     } else {
-      runMake();
+      loadExistingView();
     }
   }, [draft.id]);
 

@@ -55,23 +55,3 @@ spring:
 logging:
   level:
     com.schedulix: DEBUG
-
----
-spring:
-  config:
-    activate:
-      on-profile: prod
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
-
-app:
-  jwt:
-    secret: ${JWT_SECRET}
-  cookie:
-    secure: true
-
-logging:
-  level:
-    com.schedulix: INFO

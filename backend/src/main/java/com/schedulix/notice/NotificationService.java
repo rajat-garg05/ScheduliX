@@ -1,6 +1,6 @@
 package com.schedulix.notice;
 
-import com.schedulix.auth.CurrentUser;
+import com.schedulix.auth.security.CurrentUser;
 import com.schedulix.common.AppException;
 import com.schedulix.common.PageResponse;
 import org.springframework.data.domain.Page;

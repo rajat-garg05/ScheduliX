@@ -1,6 +1,6 @@
 package com.schedulix.history;
 
-import com.schedulix.auth.CurrentUser;
+import com.schedulix.auth.security.CurrentUser;
 import com.schedulix.common.PageResponse;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Value;

@@ -1,10 +1,10 @@
 package com.schedulix.setup;
 
-import com.schedulix.auth.AccountService;
-import com.schedulix.auth.Department;
-import com.schedulix.auth.DepartmentRepository;
-import com.schedulix.auth.EmailSender;
-import com.schedulix.auth.UserAccount;
+import com.schedulix.auth.service.AccountService;
+import com.schedulix.auth.entity.Department;
+import com.schedulix.auth.repository.DepartmentRepository;
+import com.schedulix.auth.service.EmailSender;
+import com.schedulix.auth.entity.UserAccount;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,6 +14,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+import com.schedulix.setup.entity.Subject;
+import com.schedulix.setup.entity.SubjectKind;
+import com.schedulix.setup.repository.SubjectRepository;
+import com.schedulix.setup.entity.Teacher;
+import com.schedulix.setup.repository.TeacherRepository;
+import com.schedulix.setup.entity.TeacherSubject;
+import com.schedulix.setup.repository.TeacherSubjectRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

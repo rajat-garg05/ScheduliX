@@ -1,12 +1,12 @@
 package com.schedulix.common;
 
-import com.schedulix.auth.EmailSender;
-import com.schedulix.auth.UserAccount;
-import com.schedulix.auth.UserAccountRepository;
-import com.schedulix.setup.SemesterRepository;
-import com.schedulix.setup.SubjectRepository;
-import com.schedulix.setup.TeacherRepository;
-import com.schedulix.timetable.TimetableRepository;
+import com.schedulix.auth.service.EmailSender;
+import com.schedulix.auth.entity.UserAccount;
+import com.schedulix.auth.repository.UserAccountRepository;
+import com.schedulix.setup.repository.SemesterRepository;
+import com.schedulix.setup.repository.SubjectRepository;
+import com.schedulix.setup.repository.TeacherRepository;
+import com.schedulix.timetable.repository.TimetableRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

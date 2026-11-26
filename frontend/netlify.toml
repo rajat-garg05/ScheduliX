@@ -1,0 +1,18 @@
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# Forward API calls to the backend so the browser sees one site and cookies work.
+# Replace YOUR-BACKEND-SERVICE.onrender.com with your real Render URL before deploying.
+[[redirects]]
+  from = "/api/*"
+  to = "https://YOUR-BACKEND-SERVICE.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# React Router single-page app fallback
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -12,7 +12,8 @@
 - Prompt 9, Milestone 1: Role-based `GET /api/dashboard` and HOD/Teacher `DashboardPage.jsx`.
 - Prompt 9, Milestone 2: Plain words audit applied across frontend pages and `TimetableLifecycleService`.
 - Prompt 9, Milestone 3: Look and feel pass (`index.css` focus rings + responsive phone view in `TimetableGrid.jsx`).
-- Prompt 9, Milestone 4: Added 5 sample CSVs under `backend/src/main/resources/sample/`, `DevSampleDataLoader` (`@Profile("dev")` + runtime guard, loads through normal endpoints without making timetables), and `DevSampleDataLoaderTest`.
+- Prompt 9, Milestone 4: Dev-only sample data loader (`backend/src/main/resources/sample/*.csv`, `DevSampleDataLoader`, `DevSampleDataLoaderTest`).
+- Prompt 9, Milestone 5: Playwright full journey test (`frontend/playwright.config.js`, `frontend/e2e/journey.spec.js`, `npm run test:e2e`).
 
 ## Implementation notes for later prompts
 - Do **not** put `@ConditionalOnMissingBean` on `@Component`-scanned classes. Real hook overrides (`TimetableSavedLookup`, `TimetableUsageChecker`) use `@Primary @Component`.
@@ -32,10 +33,10 @@
 ## How to run
 - Start everything: `.\scripts\start.ps1`
 - Run targeted backend test: `cd backend; mvn test -Dtest=ClassName; cd ..`
+- Run Playwright journey test: `cd frontend; npm run test:e2e; cd ..`
 - Run all tests: `.\scripts\test.ps1`
 
 ## Open items
-- Prompt 9, Milestone 5: Playwright full journey test.
-- Prompt 9, Milestone 6: Security and speed checks.
+- Prompt 9, Milestone 6: Security and speed checks (auth/role/tenant/rate-limit/upload/cookie checks + 12-class speed benchmark + any needed indexes).
 - Prompt 9, Milestone 7: Deployment files and free-hosting guide.
 - Prompt 9, Milestone 8: Final docs, checklist, and `v1.0` tag.
