@@ -1,4 +1,4 @@
-# ScheduliX — Teacher Guide
+# ScheduliX Teacher Guide
 
 This guide explains how teachers sign in, view schedules, track daily substitutes, and request leave in **ScheduliX**.
 
@@ -29,7 +29,7 @@ Your Dashboard highlights:
 ## 3. Viewing timetables
 - **My timetable:** Lists your regular weekly lectures across all saved class timetables, plus any upcoming substitute arrangements where you are covering for another teacher or another teacher is covering for you.
 - **All timetables:** Read-only view of all saved section timetables in your department. Use search or pick a section to inspect its full weekly grid.
-- **Today:** Shows every section's lectures for the selected date (defaults to today). Confirmed substitutes appear clearly with a **Substitute** mark.
+- **Today:** Shows every section's lectures for the selected date (defaults to today). Confirmed substitutes appear clearly with a **Substitute** badge.
 
 ---
 

@@ -460,9 +460,7 @@ export default function Step5FixedLectures({ draft, onBack, onMakeTimetable }) {
             if (onMakeTimetable) {
               onMakeTimetable();
             } else {
-              setNotice(
-                'All 5 steps are saved. Generating, keeping lectures, and saving the final timetable will be wired in Prompt 7.'
-              );
+              setNotice('All 5 steps are saved.');
             }
           }}
           className="inline-flex items-center gap-2 rounded-md bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800"

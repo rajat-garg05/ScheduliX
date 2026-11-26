@@ -3,8 +3,7 @@
   command = "npm run build"
   publish = "dist"
 
-# Forward API calls to the backend so the browser sees one site and cookies work.
-# Replace schedulix-backend-r6do.onrender.com with your real Render URL before deploying.
+# Forward API calls to the backend so the browser sees one origin and auth cookies work.
 [[redirects]]
   from = "/api/*"
   to = "https://schedulix-backend-r6do.onrender.com/api/:splat"
