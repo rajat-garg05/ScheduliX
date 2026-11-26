@@ -4,10 +4,10 @@
   publish = "dist"
 
 # Forward API calls to the backend so the browser sees one site and cookies work.
-# Replace YOUR-BACKEND-SERVICE.onrender.com with your real Render URL before deploying.
+# Replace schedulix-backend-r6do.onrender.com with your real Render URL before deploying.
 [[redirects]]
   from = "/api/*"
-  to = "https://YOUR-BACKEND-SERVICE.onrender.com/api/:splat"
+  to = "https://schedulix-backend-r6do.onrender.com/api/:splat"
   status = 200
   force = true
 
