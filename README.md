@@ -1,5 +1,9 @@
 # ScheduliX
 
+**Live App:** https://schedulix-tt.netlify.app/  
+**Backend Health:** https://schedulix-backend-r6do.onrender.com/api/health  
+*(Hosted on Render's free tier — the first request after 15 minutes of inactivity may take 30–60 seconds to wake up.)*
+
 Department timetable management for college HODs and teachers.
 
 The HOD registers the department, sets up teachers, subjects, eligibility links, and weekly semester plans (manually or via CSV), generates clash-free timetables across sections in one step, pins preferred lectures, saves final timetables, and manages daily teacher leave with substitute suggestions. Teachers sign in to view department timetables, today's schedule and substitutes, their personal timetable, and submit leave requests.
